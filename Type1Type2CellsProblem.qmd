@@ -1,0 +1,70 @@
+---
+title: "Type1Type2CellProblem"
+author: "Tony Zhang"
+format: html
+editor: visual
+---
+
+## The Problem:
+
+-   For a Type 1 cell, after `t` minutes there is a 1/2 chance that it will remain as a Type 1 cell and there is a 1/2 chance it will turn into a Type 2 cell.
+
+-   For a Type 2 cell, after `t` minutes there is a 3/4 chance it will remain as a Type 2 cell and there is a 1/4 chance it will turn into a Type 1 cell.
+
+-   Problem A: After a long period time, how many Type 1 and Type 2 cells will there be?
+
+-   Problem B: Does the amount of type 1 and 2 cells start out with matter?
+
+## Problem A Solution:
+
+-   let the numerical object of `x_1` denote the amount of type 1 cells and `x_2` denote the amount of type 2 cells.
+
+-   Let `t` denote the amount of time that has passed.
+
+```{r}
+x_1 = 6000
+x_2 = 6000
+#x_1c used so that the function of x_2 uses x_1 for the past iteration of `t` not the current
+x_1c = 6000
+
+for (t in 1:9999){
+  x_1 = 0.5*x_1 + 0.25*x_2
+  x_2 = 0.5*x_1c + 0.75*x_2
+  x_1c = x_1
+}
+```
+
+### Problem A Result:
+
+```{r}
+x_1 
+x_2 
+```
+
+-   It appears that the amount of type 1 cells will be one-third of the total amount of cells and the amount of type 2 cells will be two-thirds of the total amount of cells.
+
+-   Does this hold true for different starting amounts of x_1 and x_2?
+
+## Problem B Solution:
+
+```{r}
+x_1 = 0
+x_2 = 12000
+#x_1c used so that the function of x_2 uses x_1 for the past iteration of `t` not the current
+x_1c = 0
+
+for (t in 1:9999){
+  x_1 = 0.5*x_1 + 0.25*x_2
+  x_2 = 0.5*x_1c + 0.75*x_2
+  x_1c = x_1
+}
+```
+
+## Problem B Result:
+
+```{r}
+x_1 
+x_2
+```
+
+-   It resulted in the same answer, so I conclude that it does not matter.
