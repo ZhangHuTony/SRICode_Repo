@@ -1,0 +1,47 @@
+---
+title: "Exercise 5.5.47"
+author: "Tony Zhang"
+format: html
+editor: visual
+---
+
+## Exercise 5.2.49:
+
+-   Suppose meiotic drive affects the pollen only and that 80% of the pollen grains from a heterozygote carry the A allele. Ovules are normal and 50% of them carry the A allele. What fraction of offspring from aselfing heterozygote will be heterozygous?
+
+```{r}
+
+numHeteOffSpring = 0
+for(n in 1:9999)
+for(offSpring in 1:100){
+  isA_Pollen_Allele = runif(1) <= 0.8
+  isA_Ovule_Allele = runif(1) <= 0.5
+
+  if ((isA_Pollen_Allele && !isA_Ovule_Allele) || (!isA_Pollen_Allele && isA_Ovule_Allele)){
+    numHeteOffSpring = numHeteOffSpring + 1
+  }
+  
+}
+numHeteOffSpring/9999
+
+```
+
+## Exercise 5.2.50:
+
+-   Suppose meiotic drive affects both pollen and ovules and that 80% of the pollen grains and ovules from aheterozygote carry the A allele. What fraction of offspring from a selfing heterozygote will be heterozygous?
+
+```{r}
+numHeteOffSpring = 0
+for(n in 1:9999)
+for(offSpring in 1:100){
+  isA_Pollen_Allele = runif(1) <= 0.8
+  isA_Ovule_Allele = runif(1) <= 0.8
+
+  if ((isA_Pollen_Allele && !isA_Ovule_Allele) || (!isA_Pollen_Allele && isA_Ovule_Allele)){
+    numHeteOffSpring = numHeteOffSpring + 1
+  }
+  
+}
+numHeteOffSpring/9999
+
+```
