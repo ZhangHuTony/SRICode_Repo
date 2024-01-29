@@ -45,3 +45,42 @@ for(offSpring in 1:100){
 numHeteOffSpring/9999
 
 ```
+
+```{r}
+# Set the parameters
+num_offspring <- 100
+pollen_drive_rate <- 0.8
+ovule_drive_rate <- 0.5
+
+# Function to simulate meiotic drive and calculate fraction of heterozygous offspring
+simulate_meiotic_drive <- function(num_offspring, pollen_drive_rate, ovule_drive_rate) {
+  # Initialize count for heterozygous offspring
+  heterozygous_count <- 0
+  
+  # Simulate each offspring
+  for (i in 1:num_offspring) {
+    # Randomly select allele from pollen with meiotic drive
+    pollen_allele <- sample(c("A", "a"), 1, prob = c(pollen_drive_rate, 1 - pollen_drive_rate), replace = TRUE)
+    
+    # Randomly select allele from ovule
+    ovule_allele <- sample(c("A", "a"), 1, prob = c(ovule_drive_rate, 1 - ovule_drive_rate), replace = TRUE)
+    
+    # Check if the offspring is heterozygous
+    if (pollen_allele != ovule_allele) {
+      heterozygous_count <- heterozygous_count + 1
+    }
+  }
+  
+  # Calculate the fraction of heterozygous offspring
+  fraction_heterozygous <- heterozygous_count / num_offspring
+  
+  return(fraction_heterozygous)
+}
+
+# Run the simulation
+fraction_heterozygous <- simulate_meiotic_drive(num_offspring, pollen_drive_rate, ovule_drive_rate)
+
+# Print the result
+cat("Fraction of heterozygous offspring:", fraction_heterozygous, "\n")
+
+```

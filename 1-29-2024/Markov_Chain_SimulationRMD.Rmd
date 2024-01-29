@@ -1,0 +1,41 @@
+---
+title: "Markov_Chain_RMD"
+author: "Tony Zhang"
+date: "2024-01-29"
+output: html_document
+---
+```{r}
+# a simple Markov chain
+# number of steps to take
+N<-100
+Statestate<-c("Occupied","Extinct")
+# a simple Markov chain
+pOccOcc<-0.9
+pOccExt<-0.1
+pExtExt<-0.8
+pExtOcc<-0.2
+```
+
+```{r}
+#dimnames stand for dimension names, first list is for the rows and second is for the columns
+Transition<-matrix(c(pOccOcc,pExtOcc,pOccExt,pExtExt),nrow=2,dimnames = list(Statestate,Statestate))
+print(Transition)  # state 2 is absorbing
+state<- c(1,0)  # initial state vector
+```
+
+```{r}
+# makes a list of 100 numeric objects that equal 0
+out<-numeric(N)
+#default replace = false
+out[1]<-sample(1:2,1,prob=state)
+print(out[1])
+```
+
+```{r}
+for(i in 2:N)
+  #Transition[out[i-1],] pulls the row so for the first iteration it would be (0.9, 0.1)
+  out[i]<-sample(1:2,1,prob=Transition[out[i-1],])
+                                   
+plot(out) 
+```
+
