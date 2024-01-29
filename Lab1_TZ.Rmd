@@ -1,0 +1,200 @@
+---
+title: "Lab 1: Introduction to RStudio and Markdown"
+author: "Tony Zhang"
+date: "January 28, 2024"
+output: pdf_document
+---
+
+Due date: Wednesday, January 17 \@ 11:59 pm.
+
+```{r}
+
+```
+
+### Orientation
+
+This is an R Markdown (Rmd) document. If you downloaded it straight from Canvas, it should be named lab1.Rmd. The .Rmd is the file extension for R Markdown.
+
+Each lab, I will post a file like this onto Canvas, and you will complete it for your lab writeup. Assignments will consist of writing R codes, as well as writing answers to questions I ask.
+
+The reason we use R Markdown is because we can incorporate code into a PDF which is nice to read. That way your labs look fancy and organized.
+
+In order to get this to work, you will need to install a TeX distribution. TeX is is a typesetting program kind of like Microsoft Word which is great for writing equations. The easiest way to install TeX is to run this code chunk by clicking the green play button in the upper right hand corner just below this text:
+
+```{r, eval = FALSE}
+install.packages('tinytex')
+tinytex::install_tinytex()
+```
+
+That's it! You should be good to go. Try clicking the dropdown arrow next to the "Knit" button near the top of your screen, and select "Knit to PDF". It should produce a PDF document. As you complete lab assignments, you may find it helpful to periodically Knit to ensure sure your code is working correctly. You will need to close out of the PDF file each time you are re-writing it.
+
+When you click on the *Knit* button, located on the toolbar at the top of the script editor, RStudio creates a PDF.
+
+In R Studio, you can open a new .Rmd by navigating to *File \> New File \> R Markdown...*
+
+However, I will provide templates for all of the lab exercises, so there is never any need to start a new file \`from scratch' while working on these labs.
+
+### Getting Started
+
+In RStudio, you should see line numbers on the left side of your screen. The first six lines of this file are referred to as the **header**. R Markdown is very fussy about the form of the header---the three dashed lines above and below lines 2-5 must appear exactly as in this document, and there must be a blank space between the colon and the descriptive text. Also, the title, author, and date fields must be kept within double quotes. The output line specifies the output format as PDF.
+
+1.  First, rename this file to include your first initial and last name -- e.g., 01_intro_to_Rmd_j_vu.Rmd. (Use *File \> Save As...*)
+
+2.  In this document, edit the header to include your name and today's date. Click *Knit PDF*. This should produce a PDF file located in the same folder as the Rmd file, with a name like 01_intro_to_Rmd_j_vu.pdf. Note that the file name for a PDF created from an Rmd document will be the same, except with a different file extension. The file name and title of the document, however, can be different. Plain text is prepared in paragraphs, as in the first part of this document. *Text* enclosed in asterisks is *italicized* in the PDF output. **Text** enclosed in double asterisks appears in **bold font**. There must be no space between the asterisks and the enclosed text.
+
+3.  Write two or three sentences describing previous coursework in statistics (if any) and share your motivation for learning statistics with R. *Knit* the document. Note that each time you *knit* the document, the output overwrites the previous version.
+
+\~ Took AP Statistics during high school, learned basics of inferential statistics and descriptive statistics. **However** I forgot most of it unfortunately. \~
+
+I like to produce bulleted lists. They are produced using the formatting syntax from TeX:
+
+```{=tex}
+\begin{itemize}
+  \item Item 1
+    \subitem[i.] Item 1a
+  \item Item 2
+    \subitem[i] Item 2a
+    \subitem[ii] Item 2b
+\end{itemize}
+```
+4.  Write a bulleted list giving your year of graduation, your field of study, and the country you are from. Under the entry for your country, prepare subitems with the name of your state and city. *Knit* the document and inspect it to make sure the PDF is correctly produced. Hint: you can always copy-and-paste stuff and alter it to suit your needs.
+
+Put your list here!
+
+```{=tex}
+\begin{itemize}
+  \item Year of Graduation: 2027
+  \item Field of Study: Data Science
+  \item Country of Origin: United States
+    \subitem[i.] Utah, South Jordan.
+\end{itemize}
+```
+Additional formatting commands will be introduced gradually throughout the rest of the labs. <!---
+To make a "comment" in an R Markdown document, use the syntax on the lines preceding and following this message. All the text within the 'arrows' does not appear in the knitted PDF, similar to how lines preceded with a # in R are not executed as code.
+--->
+
+5.  Occasionally I will find it necessary to type mathematical expressions in the PDF document. In the .Rmd file, you may see dollar signs, like this: $f(x) = e^x$. This is TeX code. If you Knit and examine the PDF, you will appreciate how aesthetically pleasing this mathematical expression appears to be. I don't expect or require you to learn TeX, but you are free to experiment with it as you like.
+
+### Using R with R Markdown
+
+Let's write some R Code!
+
+R programs are located in **code chunks**, which appear as grey-shaded blocks. To create a chunk, we can type three backticks (\`) followed by an "r" enclosed in braces, then the additional three backticks to close the chunk, like this:
+
+```{r,eval=TRUE}
+print("Hello world!")
+```
+
+Notice at the top of the code chunk you see this: {r,eval=TRUE}. The little "r" indicates that we are coding in R, as opposed to Java, Python, C, Matlab, or something else. The "eval=TRUE" piece ensures that the code actually runs when we Knit the pdf. If you forget how to create a code chunk, you can always copy-and-paste the one above and edit the stuff inside to suit your needs.
+
+6.  Copy-and-paste the code chunk above in the space just after this question, but change "eval=FALSE". What do you notice when you Knit? If you had to guess, what do you think "eval" is abbreviating? What happens if you get rid of the "eval=FALSE" command, so that the only stuff in the brackets is "r"?
+
+```{r}
+print("Hello world!")
+```
+
+\~It doesn't print. eval short for evaluate probably. It evaluates it\~
+
+7.  It is possible to run a code chunk without having to *Knit* the entire document.
+
+    -   To run a single line, place your cursor on the line you want to run and press Ctrl/Cmd + Enter. Try this out with the lines in the following chunk. The output appears directly below the code. To clear the output, press the X in the upper right hand corner of the preview.
+
+    -   To run an entire chunk, place your cursor within the chunk and press Ctrl/Cmd + Shift + Enter. Try this out in the following chunk. The output is now accessible between the two panes.
+
+    -   The Run drop-down menu in the upper right hand corner of the script editor provides other options for running chunks, such as running all chunks above or below a certain point. The gear drop-down menu, next to the *Knit* button, provides options for expanding or collapsing all output in a document.
+
+Try each of these methods of evaluation on this code chunk:
+
+```{r,eval=FALSE}
+print('hey there')
+2+5
+exp(log(1e6))
+
+```
+
+### Loading Data
+
+9.  Sometimes I will provide data sets with labs. Other times, we can generate our own data. The following code creates a small dataset called *sample.data* that consists of the numbers 1:9, arranged in a matrix with three rows and three columns and saves it as a file called *sample_data.Rdata*. Run the following code chunk and confirm that the dataset appears in the same folder as where this Rmd document is saved.
+
+```{r}
+sample.data = matrix(1:9, nrow = 3, byrow = T)  #create sample dataset
+save(sample.data, file = "sample_data.Rdata")   #save the file
+rm(list = ls()) #clears the environment, equivalent to clicking the broom icon
+```
+
+10. To download the dataset into the R workspace, use the \texttt{load()} command. Note how the command uses the file name, "sample_data", with the .Rdata extension. After you run this next code chunk, if you look in the Environment pane (which probably appears in the top-right of your screen) the dataset should appear as *sample.data*, the name that the matrix was given in the previous code chunk.
+
+```{r}
+load("sample_data.Rdata")
+```
+
+11. The following code will produce a side-by-side boxplot (one for each column of \texttt{sample.data}). To run the code, change eval=FALSE to eval=TRUE. *Knit* the document. The plot should now be visible in the PDF output.
+
+```{r, eval = TRUE}
+#produce a side-by-side boxplot
+boxplot(sample.data)
+```
+
+12. When you run a code chunk in an R Markdown file, the commands get sent to something called the Console to be executed. At the bottom of your screen, you should see a tab called "Console". If you enlarge the window, and navigate to Console, you should be able to see all of the commands from the code chunks we have run so far. You can type code directly into the Console. Try calculaing 13 \* 379 into the Console directly. What does R say that it equals?
+
+\~what is 13 \* 379? 4927\~
+
+### Plotting stuff
+
+One of the great things about R is that it produces plots pretty easily - easy, that is, once you know what you're doing.
+
+Let's plot the function $f(x) = sin(exp(cos(x)))$ for $0 \leq x \leq 10$. How do we do this?
+
+First, let's create a vector of x values. These will be the points on the horizontal axis at which we actually evaluate our function, and then we will make R draw lines between them.
+
+```{r}
+x <- seq(-100,0,by=0.01)
+```
+
+The seq() function creates a sequence of numbers. The code above generates numbers from 0 to 10 which are spaced apart by 0.01. If you run this next chunk, you can see what x looks like:
+
+```{r}
+print(x)
+```
+
+Great! Now, we need to define the function. To define a function in R, we use a special syntax which looks like this:
+
+```{r}
+ridiculousfunction <- function(stuff){ sin(exp(cos(stuff))) }
+```
+
+We have to tell R that f is a function, as opposed to a data frame, a vector, or something else. We are telling R that the independent variable is inside of the cos() term. I could have named the indepedent variable something other than "stuff". What we choose to call it is unimportan; its placement is what matters. The stuff in the brackets is the expression that gets evaluated to give us our value. If it doesn't make sense yet, don't worry - there will be lots of practice!
+
+If you look in your "Environment" tab, you should now see x and f appearing in there. We can evaluate our function f at any value we like
+
+```{r}
+ridiculousfunction(1.234)
+ridiculousfunction(pi)
+ridiculousfunction(13*379)
+```
+
+We can evaluate f at all of our x-values at once by simply doing this:
+
+```{r}
+ridiculousfunction(x)
+```
+
+We can plot this like so:
+
+```{r}
+plot(ridiculousfunction(x)~x, type='l')
+```
+
+Wow, that sure is neat.
+
+13. Plot the function again, but this time change the spacing between your x-axis values so the spacing between them is 1 (instead of 0.01).
+
+14. Plot the function again, but this time plot it on the domain $-100 \leq x \leq 0$. Use a spacing of 0.01.
+
+### Epilogue: R Script versus R Markdown
+
+In class, you may see some R code from time to time. She will probably use something called an R Script. This is a file which can be thought of as one large code chunk; R script files are only meant to contain R commands with short plain-text comments. R Markdown files consist of both code, output, and plain text. The code chunks are like script files for typing in code.
+
+R script files are useful when the primary goal is to explore a dataset or test short R programs. R Markdown files like this one are ideal for preparing documents that need to contain both explanatory text and run codes too, such as a lab report.
+
+Congratulations! You have reached the end of Lab 1.
