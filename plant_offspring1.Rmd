@@ -1,0 +1,39 @@
+---
+title: "plant offspring"
+author: "Montana Ferita"
+date: "2024-01-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# Set the genotypes
+genotypes <- c("AA", "aa", "Aa")
+
+# Probability of 'AA'
+prob_AA <- 0.4
+
+# Probability of 'aa'
+prob_aa <- 0.1
+
+prob_Aa <- 0.5
+
+# Number of offspring to simulate
+num_offspring <- 100
+
+# Combine probabilities
+combined_probabilities <- c(prob_AA, prob_aa, prob_Aa)
+
+# Simulate genetic inheritance with combined probabilities
+offspring_genotypes <- sample(genotypes, size = num_offspring, replace = TRUE, prob = combined_probabilities)
+
+# Count the occurrences of each genotype
+genotype_counts <- table(offspring_genotypes)
+
+# Display the counts
+print(genotype_counts)
+```
