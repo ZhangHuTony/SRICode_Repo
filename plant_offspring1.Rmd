@@ -31,6 +31,8 @@ combined_probabilities <- c(prob_AA, prob_aa, prob_Aa)
 # Simulate genetic inheritance with combined probabilities
 offspring_genotypes <- sample(genotypes, size = num_offspring, replace = TRUE, prob = combined_probabilities)
 
+print(offspring_genotypes)
+
 # Count the occurrences of each genotype
 genotype_counts <- table(offspring_genotypes)
 

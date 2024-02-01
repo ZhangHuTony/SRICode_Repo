@@ -5,26 +5,51 @@ date: "2024-01-29"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+# N represents number of coinflips
+N<-200
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+#method sample takes a vector meaning values that can be chosen from, N representing the amount of times to sample. and Replace = true, means to sample with replacement
+y<-sample(c(0,1),N,replace=TRUE)
+print(y)
 ```
 
-## Including Plots
+```{r}
+# Adds all previous values up in the list
+z<-cumsum(y)
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+#Acts as array in java, can access values directly
+print(z[200])
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+plot(z)
+```
+
+```{r}
+Gs<-0
+```
+
+```{r}
+M<-100
+```
+
+```{r}
+for (j in 1:M){
+  
+  y<-sample(c(0,1),N,replace=TRUE)
+  z<-cumsum(y) 
+  
+  
+  
+  Gs[j]<-z[N]
+}
+
+```
+
+```{r}
+#breaks represents that size of each "bin" for this 
+hist(Gs,breaks=M/20)
+```

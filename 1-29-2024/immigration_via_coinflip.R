@@ -18,3 +18,4 @@ for (j in 1:M){
 }
 hist(Gs,breaks=M/20)
 
+

@@ -32,6 +32,8 @@ print(out[1])
 ```
 
 ```{r}
+
+print(Transition[2,])
 for(i in 2:N)
   #Transition[out[i-1],] pulls the row so for the first iteration it would be (0.9, 0.1)
   out[i]<-sample(1:2,1,prob=Transition[out[i-1],])
