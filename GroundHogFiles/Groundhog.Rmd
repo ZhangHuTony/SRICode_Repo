@@ -1,8 +1,10 @@
 ---
 title: "Groundhog DTMC"
-author: "Montana Ferita"
+author: "Montana Ferita & Tony Zhang"
 date: "2024-02-01"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,20 +17,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **In your own words, describe what a discrete time markov chain is?** - A stochastic system which state is influenced by the previous state.
 
-**Punxsutawney Phil is nervous about his big day and he keeps practicing going inside and outside of his hole. Suppose the probability he leaves his hole is 0.4 and the probability he goes back in his hole is 0.3. What are the conditional probabilities?** - Pr($I_t|O_{t-1}$): 0.4 - Pr($O_t|I_{t-1}$): 0.3
+**Punxsutawney Phil is nervous about his big day and he keeps practicing going inside and outside of his hole. Suppose the probability he leaves his hole is 0.4 and the probability he goes back in his hole is 0.3. What are the conditional probabilities?** 
+- Pr($I_t|O_{t-1}$): 0.4 
+- Pr($O_t|I_{t-1}$): 0.3
 
 # Model Creation
 
 **Write the discrete-time dynamical system of equations.** Note to write an equation, you need to put it in double dollar signs. To create a subscript, like $$A_{b+c}$$ you need to use the curly braces. However, if you subscript is only one letter, than you only need to use the underscore, $$A_b$$. The double backslash symbol creates a new line.
 
 $$
-O_{t+1} = 0.4
+O_{t+1} = 0.4 \\
 I_{t+1} = 0.3 
 $$
 
 # Long-term Probability
 
-**Find the long-term probability Punxsutawney is outside.** - $O^* = \frac{4}{7}$
+**Find the long-term probability Punxsutawney is outside.** 
+- $\\O^* = \frac{4}{7}$
 
 # Simulation
 
@@ -69,6 +74,6 @@ for(i in 2:numSteps){
 plot(statesList)
 print(sum(statesList == 2))
 ```
-56 is very close to 4/7 so yes it does agree with th elong term probability
+59/100 is very close to 4/7 so yes it does agree with the long term probability
 
 **Congrats, you did it! Please submit both your markdown file and the html file (click on knit-\>knit to html) on Canvas.**

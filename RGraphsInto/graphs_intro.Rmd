@@ -1,0 +1,57 @@
+---
+title: "graphs"
+author: "Montana Ferita"
+date: "2024-02-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading data
+
+This package is required to be able to read the data
+```{r}
+library(readr)
+library(ggplot2)
+```
+
+
+```{r}
+data <-read.csv("/Users/montana/Desktop/melanoma/code/first experiment 104/104lineage.csv")
+```
+
+
+
+
+if you want to view part of the data use the head function
+```{r}
+head(data)
+```
+
+if you want to remove some columns use the line below
+```{r}
+data <- data[ -c(6:10,19,21) ]
+head(data)
+```
+
+
+# some basic plots
+
+You can use the plot function which you say the data set you are using and then the columns you want to look at separated by a dollar sign
+```{r}
+plot(data$Dry_Mass,data$Volume)
+```
+
+
+Another way you can create graphs is to use ggplot
+
+```{r}
+ggplot(data = data, aes(x = Dry_Mass, y = Volume)) + 
+  geom_point() 
+```
+
+
+
+
