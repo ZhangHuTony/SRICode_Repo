@@ -50,9 +50,16 @@ Another way you can create graphs is to use ggplot
 color_palette <- rainbow(length(unique(data$Tracking_ID)))
 
 # Create a ggplot with geom_point
-ggplot(data = data, aes(x = Frame, y = Displacement, color = factor(Tracking_ID))) +
+ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Mean_Intensity, color = factor(Tracking_ID))) +
   geom_point() +
   scale_color_manual(values = color_palette) +
   labs(title = "Scatter Plot with Distinct Colors for Tracking_ID")
 
+
+```
+
+### Bar Graph of Intensities for different cells
+
+```{r}
+boxplotV(mCherry_Integrated_Intensity~Tracking_ID, data)
 ```
