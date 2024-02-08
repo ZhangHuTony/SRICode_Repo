@@ -40,13 +40,13 @@ $$
 **Create a discrete time Markov Chain model of Punxsutawney going inside and outside of his hole. Suppose the he starts inside and run this model for 100 time steps. For each line of the code, describe what the line is doing.**
 ```{r}
 
+
 #Define number of steps
 numSteps <- 100
 
-#Create list which will hold states of all steps (inside or outside)
-statesList <- numeric(numSteps)
-#starts inside
-statesList[1] = 1
+#List to keep track of each loop to get an average
+timeOutsideList <-numeric(9999)
+
 #1 denotes inside and 2 denotes outside
 states <- c(1,2)
 
@@ -60,10 +60,23 @@ probONOB<-0.7
 
 Transition<-matrix(c(probINIB,probINOB,probONIB,probONOB),nrow=2,dimnames = list(statesBefore,statesAfter))
 
-#takes 100 hundred samples, using matrix and previous state as index to choose the probabilites for the states
-for(i in 2:numSteps){
-  statesList[i] = sample(states, 1, prob = Transition[statesList[i-1],] )
+#Does it 9999 times to get an average
+for(i in 1:9999){
+
+  #Create list which will hold states of all steps (inside or outside)
+  statesList <- numeric(numSteps)
+
+  #starts inside
+  statesList[1] = 1
+
+  #takes 100 hundred samples, using matrix and previous state as index to choose the probabilites for the states
+  for(i in 2:numSteps){
+    statesList[i] = sample(states, 1, prob = Transition[statesList[i-1],] )
+  }
+  
+  timesOutsideList = sum(statesList==2)
 }
+
 
 ```
 
@@ -72,8 +85,8 @@ for(i in 2:numSteps){
 
 ```{r}
 plot(statesList)
-print(sum(statesList == 2))
+print(mean(timesOutsideList))
 ```
-59/100 is very close to 4/7 so yes it does agree with the long term probability
+Result is very close to 4/7 so yes it does agree with the long term probability
 
 **Congrats, you did it! Please submit both your markdown file and the html file (click on knit-\>knit to html) on Canvas.**
