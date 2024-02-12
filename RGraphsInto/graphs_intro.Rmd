@@ -61,5 +61,14 @@ ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Mean_Intensity, color = factor
 ### Bar Graph of Intensities for different cells
 
 ```{r}
-boxplotV(mCherry_Integrated_Intensity~Tracking_ID, data)
+boxplot(mCherry_Integrated_Intensity~Tracking_ID, data)
+```
+
+```{r}
+ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Integrated_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Scatter Plot with Distinct Colors for Tracking_ID")
+
+
 ```

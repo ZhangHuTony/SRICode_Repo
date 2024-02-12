@@ -1,0 +1,83 @@
+---
+title: "Creating Graphs"
+author: "Tony Zhang"
+date: "2024-02-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading data
+
+This package is required to be able to read the data
+
+```{r}
+library(readr)
+library(ggplot2)
+```
+
+```{r}
+data <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/RGraphsInto/104lineage.csv")
+```
+
+### Family Tree of Cells:
+
+![](%22C:/Users/Zhang/Documents/GitHub/SRICode_Repo/CreatingGraphs/FamilyTreeOfCells.png%22)
+
+```{r echo=FALSE, out.width = '100%'}
+knitr::include_graphics("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/CreatingGraphs/FamilyTreeOfCells.png", error = FALSE)
+```
+
+# Graphs Yippee
+
+```{r}
+boxplot(mCherry_Integrated_Intensity~Tracking_ID, data)
+
+boxplot(mCherry_Mean_Intensity~Tracking_ID, data)
+
+
+```
+
+```{r}
+# Create a color palette with as many colors as unique Tracking_IDs
+color_palette <- rainbow(length(unique(data$Tracking_ID)))
+
+# Create a ggplot with geom_point
+ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Mean_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Dry Mass vs Mean Intensity")
+
+ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Integrated_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Dry Mass vs Integrated Intensity")
+```
+
+```{r}
+
+ggplot(data = data, aes(x = Volume, y = mCherry_Mean_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Volume vs Mean Intensity")
+
+ggplot(data = data, aes(x = Volume, y = mCherry_Integrated_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Volume vs Integrated Intensity")
+
+```
+
+```{r}
+ggplot(data = data, aes(x = Frame, y = mCherry_Mean_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Frame vs Mean Intensity")
+
+ggplot(data = data, aes(x = Frame, y = mCherry_Integrated_Intensity, color = factor(Tracking_ID))) +
+  geom_point() +
+  scale_color_manual(values = color_palette) +
+  labs(title = "Frame vs Integrated Intensity")
+```
