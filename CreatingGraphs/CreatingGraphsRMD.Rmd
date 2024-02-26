@@ -16,6 +16,8 @@ This package is required to be able to read the data
 ```{r}
 library(readr)
 library(ggplot2)
+library(RColorBrewer)
+
 ```
 
 ```{r}
@@ -42,7 +44,7 @@ boxplot(mCherry_Mean_Intensity~Tracking_ID, data)
 
 ```{r}
 # Create a color palette with as many colors as unique Tracking_IDs
-color_palette <- rainbow(length(unique(data$Tracking_ID)))
+color_palette <- brewer.pal(length(unique(data$Tracking_ID)), "Set3")
 
 # Create a ggplot with geom_point
 ggplot(data = data, aes(x = Dry_Mass, y = mCherry_Mean_Intensity, color = factor(Tracking_ID))) +

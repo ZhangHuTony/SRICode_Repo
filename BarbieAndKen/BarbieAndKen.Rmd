@@ -1,0 +1,83 @@
+---
+title: "BarbieAndKen"
+author: "Tony Zhang"
+date: "2024-02-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(ggplot2)
+library(RColorBrewer)
+
+bigBarbie12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/barbie12hrs.csv")
+bigKen12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/ken12hrs.csv")
+lilBarbie12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilbarbie12hrs.csv")
+lilKen12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilken12hrs.csv")
+lilPeo12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilpeople12hrs.csv")
+
+```
+
+```{r}
+lilBarbie12Rs = head(Barbie12,100)
+lilKen12Rs = head(Ken12,100)
+
+BarbieKenMeansTable = data.frame(X = lilBarbie12Rs$X, Barbie12MeanIntensity = lilBarbie12Rs$Mean.Intensity, Ken12MeanIntensity = lilKen12Rs$Mean.Intensity)
+
+ggplot(BarbieKenMeansTable, aes(x = X)) +
+  geom_line(aes(y = Barbie12MeanIntensity), color = "pink", linetype = "solid", size = 1) +
+  geom_line(aes(y = Ken12MeanIntensity), color = "blue", linetype = "solid", size = 1) +
+  labs(x = "X", y = "Mean Intensity") +
+  theme_minimal()
+```
+
+
+
+```{r}
+
+# Create histograms
+ggplot(lilBarbie12, aes(x = Mean.Intensity)) +
+  geom_histogram(binwidth = 25, fill = "pink", color = "black", alpha = 0.7) +
+  labs(x = "Mean Intensity", y = "Frequency") +
+  theme_minimal()
+
+# Create another histogram for Ken12MeanIntensity
+ggplot(lilKen12, aes(x = Mean.Intensity)) +
+  geom_histogram(binwidth = 25, fill = "blue", color = "black", alpha = 0.7) +
+  labs(x = "Mean Intensity", y = "Frequency") +
+  theme_minimal()
+```
+
+```{r}
+
+ggplot() +
+  geom_density(data = lilBarbie12, aes(x = Mean.Intensity), color = "pink", size = 1) +
+  geom_density(data = lilKen12, aes(x = Mean.Intensity), color = "blue", size = 1) +
+  labs(x = "Mean Intensity") +
+  theme_minimal()
+```
+
+```{r}
+ggplot() +
+  geom_density(data = lilBarbie12, aes(x = Speed), color = "pink", size = 1) +
+  geom_density(data = lilKen12, aes(x = Speed), color = "blue", size = 1) +
+  labs(x = "Speed") +
+  theme_minimal()
+
+
+```
+
+```{r}
+lilBarbie12$Duration.Hours = lilBarbie12$Duration/2
+lilKen12$Duration.Hours = lilKen12$Duration/2
+ggplot() +
+  geom_density(data = lilBarbie12, aes(x = Duration.Hours), color = "pink", size = 1) +
+  geom_density(data = lilKen12, aes(x = Duration.Hours), color = "blue", size = 1) +
+  labs(x = "Duration")+
+  theme_minimal()
+```
+
