@@ -14,11 +14,12 @@ library(readr)
 library(ggplot2)
 library(RColorBrewer)
 
-bigBarbie12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/barbie12hrs.csv")
-bigKen12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/ken12hrs.csv")
-lilBarbie12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilbarbie12hrs.csv")
-lilKen12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilken12hrs.csv")
-lilPeo12 <-read.csv("C:/Users/Zhang/Documents/GitHub/SRICode_Repo/BarbieAndKen/lilpeople12hrs.csv")
+
+lilBarbMelNo12 <-read.csv("lilbarbie12hrs.csv")
+lilKenMelNo12 <-read.csv("lilken12hrs.csv")
+lilKenMelCy6 <-read.csv("lilmelanocyte6hrs.csv")
+
+
 
 ```
 
@@ -55,29 +56,87 @@ ggplot(lilKen12, aes(x = Mean.Intensity)) +
 ```{r}
 
 ggplot() +
-  geom_density(data = lilBarbie12, aes(x = Mean.Intensity), color = "pink", size = 1) +
-  geom_density(data = lilKen12, aes(x = Mean.Intensity), color = "blue", size = 1) +
+  geom_density(data = lilBarbMelNo12, aes(x = Mean.Intensity), color = "pink", size = 1) +
+  geom_density(data = lilKenMelNo12, aes(x = Mean.Intensity), color = "blue", size = 1) +
   labs(x = "Mean Intensity") +
   theme_minimal()
 ```
 
 ```{r}
 ggplot() +
-  geom_density(data = lilBarbie12, aes(x = Speed), color = "pink", size = 1) +
-  geom_density(data = lilKen12, aes(x = Speed), color = "blue", size = 1) +
+  geom_density(data = lilBarbMelNo12, aes(x = Speed, color = "Barbie Melanoma"), size = 1) +
+  geom_density(data = lilKenMelNo12, aes(x = Speed, color = "Ken Melanoma"), size = 1) +
+  #geom_density(data = lilBarbMelCy6, aes(x = Mean.Speed, color = "Barbie Melanocyte"), size = 1) +
+  geom_density(data = lilKenMelCy6, aes(x = Mean.Speed, color = "Ken Melanocyte"), size = 1) +
   labs(x = "Speed") +
+  scale_color_manual(name = "Groups", values = c("Barbie Melanoma" = "pink", "Ken Melanoma" = "blue", "Barbie Melanocyte" = "red", "Ken Melanocyte" = "purple")) +
   theme_minimal()
 
+```
+```{r}
+ggplot() +
+  geom_density(data = lilBarbMelNo12, aes(x = Track.Length, color = "Barbie Melanoma"), size = 1) +
+  geom_density(data = lilKenMelNo12, aes(x = Track.Length, color = "Ken Melanoma"), size = 1) +
+  #geom_density(data = lilBarbMelCy6, aes(x = Track.Length, color = "Barbie Melanocyte"), size = 1) +
+  geom_density(data = lilKenMelCy6, aes(x = Track.Length, color = "Ken Melanocyte"), size = 1) +
+  labs(x = "Distance") +
+  scale_color_manual(name = "Groups", values = c("Barbie Melanoma" = "pink", "Ken Melanoma" = "blue", "Barbie Melanocyte" = "red", "Ken Melanocyte" = "purple")) +
+  theme_minimal()
+
+```
+
+
+```{r}
+#numBarbMC = nrow(lilBarbMelCy6)
+numBarbML = nrow(lilBarbMelNo12)
+numKenMC = nrow(lilKenMelCy6)
+numKenML = nrow(lilKenMelNo12)
+data <- data.frame(Category = c("Barbie Melanoma", "Ken Melanocyte", "Ken Melanoma"),
+                   Count = c(numBarbML, numKenMC, numKenML))
+
+
+ggplot(data, aes(x = Category, y = Count, fill = Category)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Cell Type", y = "Number of Cells", title = "Histogram of Number of Cells") +
+  theme_minimal()
+```
+```{r}
+ggplot() +
+  geom_density(data = lilBarbMelNo12, aes(x = Duration, color = "Barbie Melanoma"), size = 1) +
+  geom_density(data = lilKenMelNo12, aes(x = Duration, color = "Ken Melanoma"), size = 1) +
+  #geom_density(data = lilBarbMelCy6, aes(x = Track.Length, color = "Barbie Melanocyte"), size = 1) +
+  geom_density(data = lilKenMelCy6, aes(x = Duration, color = "Ken Melanocyte"), size = 1) +
+  labs(x = "Duration") +
+  scale_color_manual(name = "Groups", values = c("Barbie Melanoma" = "pink", "Ken Melanoma" = "blue", "Barbie Melanocyte" = "red", "Ken Melanocyte" = "purple")) +
+  theme_minimal()
+
+```
+```{r}
+ggplot() +
+  stat_ecdf(data = lilKenMelNo12, aes(x = Duration, color = "Melanoma Duration"), size = 1) +
+  stat_ecdf(data = lilKenMelCy6, aes(x = Duration, color = "Melanocyte Duration"), size = 1) +
+  #stat_ecdf(data = lilKenMelNo12, aes(x = Mean.Intensity, color = "Melanoma Intensity"), size = 1) +
+  #stat_ecdf(data = lilKenMelCy6, aes(x = Mean.Intensity, color = "Melanocyte Intensity"), size = 1) +
+  #stat_ecdf(data = lilKenMelNo12, aes(x = Track.Length, color = "Melanoma Track Length"), size = 1) +
+  #stat_ecdf(data = lilKenMelCy6, aes(x = Track.Length, color = "Melanocyte Track Length"), size = 1) +
+  labs(x = "Duration") +
+  scale_color_manual(name = "Groups", values = c("Melanoma Duration" = "red", "Melanocyte Duration" = "blue", "Melanoma Intensity" = "pink", "Melanocyte Intensity" = "purple", "Melanoma Track Length" = "aquamarine2", "Melanocyte Track Length" = "darkgoldenrod3")) +
+  theme_minimal() +
+  ggtitle("Empirical CDF of Duration")
 
 ```
 
 ```{r}
-lilBarbie12$Duration.Hours = lilBarbie12$Duration/2
-lilKen12$Duration.Hours = lilKen12$Duration/2
 ggplot() +
-  geom_density(data = lilBarbie12, aes(x = Duration.Hours), color = "pink", size = 1) +
-  geom_density(data = lilKen12, aes(x = Duration.Hours), color = "blue", size = 1) +
-  labs(x = "Duration")+
-  theme_minimal()
-```
+  stat_ecdf(data = lilKenMelNo12, aes(x = Duration, color = "Ken Melanoma Duration"), size = 1) +
+  stat_ecdf(data = lilBarbMelNo12, aes(x = Duration, color = "Barbie Melanoma Duration"), size = 1) +
+  #stat_ecdf(data = lilKenMelNo12, aes(x = Mean.Intensity, color = "Ken Melanoma Intensity"), size = 1) +
+  #stat_ecdf(data = lilBarbMelNo12, aes(x = Mean.Intensity, color = "Barbie Melanoma Intensity"), size = 1) +
+  stat_ecdf(data = lilKenMelNo12, aes(x = Track.Length, color = "Ken Melanoma Track Length"), size = 1) +
+  stat_ecdf(data = lilBarbMelNo12, aes(x = Track.Length, color = "Barbie Melanoma Track Length"), size = 1) +
+  labs(x = "Track Length/Duration") +
+  scale_color_manual(name = "Groups", values = c("Ken Melanoma Duration" = "red", "Barbie Melanoma Duration" = "blue", "Ken Melanoma Intensity" = "pink", "Barbie Melanoma Intensity" = "purple", "Ken Melanoma Track Length" = "aquamarine2", "Barbie Melanoma Track Length" = "darkgoldenrod3")) +
+  theme_minimal() +
+  ggtitle("Empirical CDF of Track Length and Duration")
 
+```
