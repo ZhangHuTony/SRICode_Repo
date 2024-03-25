@@ -1,0 +1,70 @@
+---
+title: "FilteringCells"
+author: "Tony Zhang"
+date: "2024-03-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(ggplot2)
+library(RColorBrewer)
+```
+
+```{r}
+Filt6_BarbieMelanoma_Dataframe = read.csv("Data/barbie6hrs.csv")
+Filt6_KenMelanoma_Dataframe = read.csv("Data/ken6hrs.csv")
+```
+
+```{r}
+singleCell_dataFrame = subset(Filt6_BarbieMelanoma_Dataframe, Tracking.ID == 2382)
+```
+
+```{r}
+# Create the ggplot object with a darker background
+p <- ggplot(singleCell_dataFrame, aes(x = Position.X, y = Position.Y, color = Frame)) +
+  geom_point() +
+  scale_color_gradientn(colours = terrain.colors(20)) +
+  theme(panel.background = element_rect(fill = "black"))  # Remove panel border
+
+# Print the plot
+print(p)
+
+```
+
+
+```{r}
+# Assuming 'singleCell_dataFrame' contains your data
+# 'Frame' is the variable indicating the frame
+
+# Define colors for the gradient
+start_color <- "red"
+end_color <- "blue"
+
+# Create a color gradient based on the 'Frame' variable
+color_gradient <- colorRampPalette(c(start_color, end_color))(nrow(singleCell_dataFrame))
+
+
+# Plot the points without plotting lines initially
+plot(singleCell_dataFrame$Position.X, singleCell_dataFrame$Position.Y, type = "n", xlab = "Position X", ylab = "Position Y")
+
+# Draw lines between consecutive points with the same 'Frame' value
+for (i in 2:nrow(singleCell_dataFrame)) {
+  if (singleCell_dataFrame$Frame[i] - singleCell_dataFrame$Frame[i - 1] == 1) {
+    lines(x = c(singleCell_dataFrame$Position.X[i - 1], singleCell_dataFrame$Position.X[i]), 
+          y = c(singleCell_dataFrame$Position.Y[i - 1], singleCell_dataFrame$Position.Y[i]), 
+          col = color_gradient[i])
+  }
+}
+
+# Add points on top to ensure they are visible
+points(singleCell_dataFrame$Position.X, singleCell_dataFrame$Position.Y, col = color_gradient)
+
+```
+
+
+
