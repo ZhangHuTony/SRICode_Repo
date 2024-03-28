@@ -13,6 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 library(ggplot2)
 library(RColorBrewer)
+library(dplyr)
+
 ```
 
 ```{r}
@@ -20,6 +22,7 @@ Filt6_BarbieMelanoma_Dataframe = read.csv("Data/barbie6hrs.csv")
 Filt6_KenMelanoma_Dataframe = read.csv("Data/ken6hrs.csv")
 ```
 
+# Looking at individual cells
 ```{r}
 singleCell_dataFrame = subset(Filt6_BarbieMelanoma_Dataframe, Tracking.ID == 2382)
 ```
@@ -66,5 +69,100 @@ points(singleCell_dataFrame$Position.X, singleCell_dataFrame$Position.Y, col = c
 
 ```
 
+
+# Filtering Based off Position
+```{r}
+
+# Haven't tested yet
+
+
+## Function which completely removes all row occurences of a tracking ID whos final position was less than some distance from the edge. The edge is 1000 and 0 in both directions.
+filter_DistanceFromEdge <- function(df, distance){
+
+  filtered_df <- df %>%
+    group_by(Tracking.ID) %>%
+    filter((1000 - last(Position.X)) > distance & last(Position.X) > distance & (1000 - last(Position.Y)) > distance & last(Position.Y) > distance) %>%
+  ungroup()
+  result <- filtered_df
+}
+  
+```
+
+## First Aggregate Data
+
+```{r}
+#Function which aggregates data using the Tracking ID as the shared key.
+#Call Example: aggregatedData = aggregate_TrackingID(nonAggregatedData)
+aggregate_TrackingID <- function(nonAggDf){
+  agg_df <- nonAggDf %>%
+  group_by(Tracking.ID) %>%
+  summarise(
+    #Time between frame is 15 minutes
+    Duration.minutes = (max(Frame) - min(Frame))*15,
+    Duration.hours = Duration.minutes/60
+  )
+}
+
+#DOESN"T WORK :C HELP PLS
+
+#Function which aggregates data using the Tracking ID as the shared key and creates a new column `maybeLeft` where if the final position was within some distance from the edge will be true.
+#Call Example: aggregatedData = aggregate_TrackingID(nonAggregatedData)
+aggregate_TrackingID_EndPos <- function(nonAggDf, distance){
+
+  agg_df <- nonAggDf %>%
+    group_by(Tracking.ID) %>%
+    summarise(
+      #Time between frame is 15 minutes
+      Duration.minutes = (max(Frame) - min(Frame))*15,
+      Duration.hours = Duration.minutes/60,
+      Position.FinalX = last(Position.X),
+      Position.FinalY = last(Position.Y),
+    #If distance from edge is more than `distance` it probably didn't leave
+
+            maybeLeft = ifelse((1000 - Position.FinalX) > distance & Position.FinalX > distance & (1000 - Position.FinalY) > distance & last(Position.FinalY) > distance, FALSE, TRUE)
+
+      )
+
+}
+```
+
+```{r}
+agg_Filt6_BarMel_Df = aggregate_TrackingID(Filt6_BarbieMelanoma_Dataframe)
+
+agg_Filt6_KenMel_Df = aggregate_TrackingID(Filt6_KenMelanoma_Dataframe)
+```
+
+#Looking at filtered data
+```{r}
+#Function which takes two dataframes and the desired variable name to graph an empirical cdf of them.
+#Call Example: "plot2Ecdf(barbieData, kenData, "Mean.Intensity")
+plot2Ecdf <- function(bardf2, kendf1, variable){
+  ggplot() +
+    stat_ecdf(data = kendf1, aes(x = !!rlang::sym(variable), color = "Ken Melanoma Duration"), size = 1) +
+    stat_ecdf(data = bardf2, aes(x = !!rlang::sym(variable), color = "Barbie Melanoma Duration"), size = 1) +
+    labs(x = variable) +
+    scale_color_manual(name = "Groups", values = c("Ken Melanoma Duration" = "lightblue", "Barbie Melanoma Duration" = "pink")) +
+    theme_minimal() +
+    ggtitle("Empirical CDF", variable)
+}
+
+#Function which takes two dataframes and the desired variable name to graph a pdf of them.
+#Call Example: "plot2pdf(barbieData, kenData, "Mean.Intensity")
+plot2Pdf <- function(bardf2, kendf1, variable){
+  ggplot() +
+    geom_density(data = kendf1, aes(x = !!rlang::sym(variable), color = "Ken Melanoma Duration"), size = 1) +
+    geom_density(data = bardf2, aes(x = !!rlang::sym(variable), color = "Barbie Melanoma Duration"), size = 1) +
+    labs(x = variable) +
+    scale_color_manual(name = "Groups", values = c("Ken Melanoma Duration" = "lightblue", "Barbie Melanoma Duration" = "pink")) +
+    
+    theme_minimal() +
+    ggtitle("PDF of ", variable)
+}
+```
+
+```{r}
+plot2Ecdf(Filt6_KenMelanoma_Dataframe, Filt6_BarbieMelanoma_Dataframe, "Dry.Mass")
+plot2Pdf(Filt6_KenMelanoma_Dataframe, Filt6_BarbieMelanoma_Dataframe, "Dry.Mass")
+```
 
 
