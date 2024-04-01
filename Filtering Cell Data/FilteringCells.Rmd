@@ -214,6 +214,48 @@ rescalePosition <- function(Df){
 
 ```
 
+
+
+
+## LOGISTICAL REGRESSSION
+```{r}
+distanceFromCenterDf = rescalePosition(Filt6_BarbieMelanoma_Dataframe)
+
+```
+
+```{r}
+# Assuming your dataframe is named 'data'
+# Get 10 random row indices
+training_indices <- sample(nrow(distanceFromCenterDf), 10000)
+
+# Select rows based on random indices
+training_rows <- distanceFromCenterDf[random_indices, ]
+```
+
+```{r}
+# Assuming your dataframe is named 'data'
+# Get 10 random row indices
+testing_indices <- sample(nrow(distanceFromCenterDf), 1000)
+
+# Select rows based on random indices
+testing_rows <- distanceFromCenterDf[random_indices, ]
+```
+```{r}
+model <- glm(left ~ Distance_From_Center, data = training_rows, family = binomial)
+```
+
+```{r}
+probabilities = (predict(model, testing_rows, type = "response"))
+```
+
+```{r}
+plot(testing_rows$Distance_From_Center, probabilities)
+```
+
+
+
+
+
 ```{r}
 # Assuming scaledDf is your original dataframe
 # Columns to be included in the new dataframe
@@ -245,5 +287,5 @@ aggregated_df <- rescaledDf %>%
 
 ```
 
-```{}
+```         
 ```
