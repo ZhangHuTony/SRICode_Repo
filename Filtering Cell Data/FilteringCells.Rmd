@@ -209,50 +209,57 @@ rescalePosition <- function(Df){
         Df$left[last_row_index] <- 1
     }
     
+     # Initialize duration column
+    Df$duration <- NA
+    
+    # Create duration column based on occurrence of Tracking.ID
+    for (id in unique(Df$Tracking.ID)) {
+        currDuration = 15
+        for(index in which(Df$Tracking.ID == id)){
+            Df$duration[index] = currDuration
+            currDuration = currDuration+15
+        }
+    }
+    
+    
     return(Df)
 }
 
 ```
 
+```{r}
+  curr = 5
+for(i in 1:10){
+
+  print(curr)
+  curr = curr+5
+}
+```
 
 
 
 ## LOGISTICAL REGRESSSION
 ```{r}
 distanceFromCenterDf = rescalePosition(Filt6_BarbieMelanoma_Dataframe)
-
 ```
 
 ```{r}
-# Assuming your dataframe is named 'data'
-# Get 10 random row indices
-training_indices <- sample(nrow(distanceFromCenterDf), 10000)
-
-# Select rows based on random indices
-training_rows <- distanceFromCenterDf[random_indices, ]
+ggplot(distanceFromCenterDf, aes(x=Distance_From_Center, y=left)) + geom_point() +
+      stat_smooth(method="glm", color="green", se=FALSE, 
+                method.args = list(family=binomial))
 ```
 
 ```{r}
-# Assuming your dataframe is named 'data'
-# Get 10 random row indices
-testing_indices <- sample(nrow(distanceFromCenterDf), 1000)
-
-# Select rows based on random indices
-testing_rows <- distanceFromCenterDf[random_indices, ]
-```
-```{r}
-model <- glm(left ~ Distance_From_Center, data = training_rows, family = binomial)
+ggplot(distanceFromCenterDf, aes(x=Dry.Mass, y=left)) + geom_point() +
+      stat_smooth(method="glm", color="green", se=FALSE, 
+                method.args = list(family=binomial))
 ```
 
 ```{r}
-probabilities = (predict(model, testing_rows, type = "response"))
+ggplot(distanceFromCenterDf, aes(x=duration, y=left)) + geom_point() +
+      stat_smooth(method="glm", color="green", se=FALSE, 
+                method.args = list(family=binomial))
 ```
-
-```{r}
-plot(testing_rows$Distance_From_Center, probabilities)
-```
-
-
 
 
 
