@@ -216,7 +216,7 @@ rescalePosition <- function(Df){
     for (id in unique(Df$Tracking.ID)) {
         currDuration = 15
         for(index in which(Df$Tracking.ID == id)){
-            Df$duration[index] = currDuration
+            Df$duration[index] = currDuration/60
             currDuration = currDuration+15
         }
     }
@@ -263,6 +263,37 @@ ggplot(distanceFromCenterDf, aes(x=duration, y=left)) + geom_point() +
 
 
 
+## LOGISTICAL REGRESSSION
+
+```{r}
+model <- glm(left ~ Distance_From_Center, data = distanceFromCenterDf, family = binomial)
+```
+
+```{r}
+summary(model)
+```
+```{r}
+model1 <- glm(left ~ Dry.Mass, data = distanceFromCenterDf, family = binomial)
+summary(model1)
+```
+
+```{r}
+model2 <- glm(left ~ duration+Dry.Mass+Distance_From_Center, data = distanceFromCenterDf, family = binomial, subset = Distance_From_Center > mean(Distance_From_Center))
+summary(model2)
+```
+
+```{r}
+subset = Dry.Mass<mean(Distance_From_Center)
+```
+
+
+```{r}
+testing_indices <- sample(nrow(distanceFromCenterDf), 100)
+testing_rows <- distanceFromCenterDf[testing_indices, ]
+probabilities = (predict(model, testing_rows, type = "response"))
+```
+
+
 ```{r}
 # Assuming scaledDf is your original dataframe
 # Columns to be included in the new dataframe
@@ -294,5 +325,9 @@ aggregated_df <- rescaledDf %>%
 
 ```
 
-```         
+
+## Prof Adler stuff
+```{r}
+abline(lm(Dry.Mass ~Distance_From_Center,distanceFromCenterDf),col=2,lwd=3)
+with(distanceFromCenterDf,lines(supsmu(Distance_From_Center,Dry.Mass),col=3,lwd=3))
 ```
