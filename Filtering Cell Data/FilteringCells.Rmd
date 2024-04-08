@@ -236,9 +236,8 @@ for(i in 1:10){
 }
 ```
 
-
-
 ## LOGISTICAL REGRESSSION
+
 ```{r}
 distanceFromCenterDf = rescalePosition(Filt6_BarbieMelanoma_Dataframe)
 ```
@@ -261,8 +260,6 @@ ggplot(distanceFromCenterDf, aes(x=duration, y=left)) + geom_point() +
                 method.args = list(family=binomial))
 ```
 
-
-
 ## LOGISTICAL REGRESSSION
 
 ```{r}
@@ -272,13 +269,14 @@ model <- glm(left ~ Distance_From_Center, data = distanceFromCenterDf, family = 
 ```{r}
 summary(model)
 ```
+
 ```{r}
 model1 <- glm(left ~ Dry.Mass, data = distanceFromCenterDf, family = binomial)
 summary(model1)
 ```
 
 ```{r}
-model2 <- glm(left ~ duration+Dry.Mass+Distance_From_Center, data = distanceFromCenterDf, family = binomial, subset = Distance_From_Center > mean(Distance_From_Center))
+model2 <- glm(left ~ duration+Dry.Mass+Distance_From_Center, data = distanceFromCenterDf, family = binomial, subset = Distance_From_Center < mean(Distance_From_Center))
 summary(model2)
 ```
 
@@ -286,13 +284,11 @@ summary(model2)
 subset = Dry.Mass<mean(Distance_From_Center)
 ```
 
-
 ```{r}
 testing_indices <- sample(nrow(distanceFromCenterDf), 100)
 testing_rows <- distanceFromCenterDf[testing_indices, ]
 probabilities = (predict(model, testing_rows, type = "response"))
 ```
-
 
 ```{r}
 # Assuming scaledDf is your original dataframe
@@ -325,8 +321,71 @@ aggregated_df <- rescaledDf %>%
 
 ```
 
+## Finding number of cells within some distance of eachother
+
+```{r}
+
+getNumberOfCellsWithin <- function(Df, distance){
+  frameDf = subset(Df, Frame == 1)
+  # Assuming scaledDf is your original dataframe
+  # Columns to be included in the new dataframe
+  selected_columns <- c("Position.X", "Position.Y")
+  # Creating a new dataframe by selecting specific columns from scaledDf
+  frame_df_positions <- frame1df[selected_columns]
+
+  distancesMatrix = matrix(dist(frame_df_positions, method = "euclidean", diag = TRUE, upper = TRUE))
+
+  for(col in 1:ncol(distancesMatrix)) {
+    for(row in 1:nrow(distancesMatrix)) {
+        print(distancesMatrix[row, col])
+    }
+  }
+}
+
+
+
+```
+
+```{r}
+
+# R program to illustrate how to calculate
+# euclidean distance using dist() function
+ 
+# Initializing a vector
+vect1 <- c(1, 4)
+ 
+# Initializing another vector
+vect2 <- c(9, 4)
+ 
+# Initializing another vector
+vect3 <- c(1, 7)
+ 
+# Initializing another vector
+vect4 <- c(2, 1)
+ 
+# Initializing another vector
+vect5 <- c(1, 4)
+ 
+# Initializing another vector
+vect6 <- c(3, 7)
+ 
+#Row bind vectors into a single matrix
+twoDimensionalVect <- rbind(vect1, vect2, vect3,
+                            vect4, vect5, vect6)
+ 
+print("Euclidean distance between each pair of vectors is: ")
+cat("\n\n")
+ 
+# Calculate Euclidean distance between vectors using 
+# built in dist method By passing two-dimensional 
+# vector as a parameter Since we want to calculate
+# Euclidean distance between each unique pair of vectors
+# That is why we are passing Euclidean as a method
+dist(twoDimensionalVect, method = "euclidean", diag = TRUE, upper = TRUE)
+```
 
 ## Prof Adler stuff
+
 ```{r}
 abline(lm(Dry.Mass ~Distance_From_Center,distanceFromCenterDf),col=2,lwd=3)
 with(distanceFromCenterDf,lines(supsmu(Distance_From_Center,Dry.Mass),col=3,lwd=3))
