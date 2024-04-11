@@ -197,6 +197,7 @@ plot2Pdf(Filt6_KenMelanoma_Dataframe, Filt6_BarbieMelanoma_Dataframe, "Dry.Mass"
 rescalePosition <- function(Df){
     Df$Centered_Position.X = Df$Position.X - 500
     Df$Centered_Position.Y = Df$Position.Y - 500
+    Df$Distance_From_Edge = pmin(500 - abs(Df$Centered_Position.X), 500 - abs(Df$Centered_Position.Y))
     Df$Distance_From_Center = sqrt(Df$Centered_Position.X^2 + Df$Centered_Position.Y^2)
     
     # Initialize left column
@@ -302,23 +303,14 @@ new_df <- rescaledDf[selected_columns]
 print(new_df)
 ```
 
+
+
 ```{r}
-library(dplyr)
 
-# Define the interval width
-interval_width <- 25
-
-# Create intervals for Distance_From_Center
-rescaledDf$interval <- cut(rescaledDf$Distance_From_Center, breaks = seq(0, max(rescaledDf$Distance_From_Center) + interval_width, by = interval_width), include.lowest = TRUE, right = FALSE)
-
-# Aggregate the dataframe and count the occurrences of left = 1 and left = 0 within each interval
 aggregated_df <- rescaledDf %>%
   group_by(interval) %>%
   summarise(amount_left_0 = sum(left == 0),
             amount_left_1 = sum(left == 1))
-
-# Display the aggregated dataframe
-
 ```
 
 ## Finding number of cells within some distance of eachother
@@ -331,7 +323,7 @@ getNumberOfCellsWithin <- function(Df, distance){
   # Columns to be included in the new dataframe
   selected_columns <- c("Position.X", "Position.Y")
   # Creating a new dataframe by selecting specific columns from scaledDf
-  frame_df_positions <- frame1df[selected_columns]
+  frame_df_positions <- frameDf[selected_columns]
 
   distancesMatrix = matrix(dist(frame_df_positions, method = "euclidean", diag = TRUE, upper = TRUE))
 
@@ -389,4 +381,91 @@ dist(twoDimensionalVect, method = "euclidean", diag = TRUE, upper = TRUE)
 ```{r}
 abline(lm(Dry.Mass ~Distance_From_Center,distanceFromCenterDf),col=2,lwd=3)
 with(distanceFromCenterDf,lines(supsmu(Distance_From_Center,Dry.Mass),col=3,lwd=3))
+```
+
+## Looking at properties at difference distance intervals
+
+```{r}
+
+addDistanceIntervals <- function(Df, interval_width){
+  Df$distance_interval <- cut(Df$Distance_From_Edge, breaks = seq(0, max(Df$Distance_From_Edge) + interval_width, by = interval_width), include.lowest = TRUE, right = FALSE)
+  return (Df)
+}
+
+```
+
+```{r}
+interval25Df = addDistanceIntervals(distanceFromCenterDf,25)
+```
+
+```{r}
+ggplot(interval50Df, aes(x = distance_interval, y = duration)) +
+  geom_boxplot() +
+  labs(x = "Distance Interval", y = "Duration", title = "Boxplot of Duration for Each Interval")
+```
+```{r}
+# Calculate mean for each interval
+mean_by_interval <- aggregate(duration ~ distance_interval, data = interval25Df, FUN = mean)
+
+# Create bar plot using ggplot2
+ggplot(mean_by_interval, aes(x = distance_interval, y = duration)) +
+  geom_point(size = 3, color = "skyblue") +
+  geom_line()+
+  labs(x = "Interval", y = "Mean Duration", title = "Mean Duration for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+ggplot(interval50Df, aes(x = distance_interval, y = Dry.Mass)) +
+  geom_boxplot() +
+  labs(x = "Distance Interval", y = "Duration", title = "Boxplot of Duration for Each Interval")
+```
+```{r}
+# Calculate mean for each interval
+mean_by_interval <- aggregate(Dry.Mass ~ distance_interval, data = interval25Df, FUN = mean)
+mean_by_interval$distance_interval <- factor(mean_by_interval$distance_interval, levels = rev(levels(mean_by_interval$distance_interval)))
+
+# Create bar plot using ggplot2
+ggplot(mean_by_interval, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Dry Mass", title = "Mean Mass for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+
+```{r}
+interval5Df = addDistanceIntervals(distanceFromCenterDf,5)
+```
+
+```{r}
+mean_by_interval <- aggregate(Dry.Mass ~ distance_interval, data = interval5Df, FUN = mean)
+mean_by_interval$distance_interval <- factor(mean_by_interval$distance_interval, levels = rev(levels(mean_by_interval$distance_interval)))
+
+filtered_data <- mean_by_interval[1:30, ]
+
+# Create bar plot using ggplot2
+ggplot(filtered_data, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") +
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Dry Mass", title = "Mean Dry Mass for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+```{r}
+interval1Df = addDistanceIntervals(distanceFromCenterDf,1)
+```
+
+```{r}
+mean_by_interval <- aggregate(Dry.Mass ~ distance_interval, data = interval1Df, FUN = mean)
+mean_by_interval$distance_interval <- factor(mean_by_interval$distance_interval, levels = rev(levels(mean_by_interval$distance_interval)))
+
+filtered_data <- mean_by_interval[1:25, ]
+
+# Create bar plot using ggplot2
+ggplot(filtered_data, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") +
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Dry Mass", title = "Mean Dry Mass for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
