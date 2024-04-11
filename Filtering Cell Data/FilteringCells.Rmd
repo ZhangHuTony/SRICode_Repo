@@ -276,7 +276,7 @@ summary(model1)
 ```
 
 ```{r}
-model2 <- glm(left ~ duration+Dry.Mass+Distance_From_Center, data = distanceFromCenterDf, family = binomial, subset = Distance_From_Center < mean(Distance_From_Center))
+model2 <- glm(left ~ duration+Dry.Mass+Distance_From_Center, data = distanceFromCenterDf, family = binomial )
 summary(model2)
 ```
 
