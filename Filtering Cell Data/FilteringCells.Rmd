@@ -303,8 +303,6 @@ new_df <- rescaledDf[selected_columns]
 print(new_df)
 ```
 
-
-
 ```{r}
 
 aggregated_df <- rescaledDf %>%
@@ -398,29 +396,33 @@ addDistanceIntervals <- function(Df, interval_width){
 interval25Df = addDistanceIntervals(distanceFromCenterDf,25)
 ```
 
+
+```{r}
+# Calculate mean for each interval
+mean_by_interval <- aggregate(duration ~ distance_interval, data = interval25Df, FUN = mean)
+
+#Reverse order of rows
+mean_by_interval$distance_interval <- factor(mean_by_interval$distance_interval, levels = rev(levels(mean_by_interval$distance_interval)))
+
+ggplot(mean_by_interval, aes(x = distance_interval, y = duration, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue")+
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Interval", y = "Mean Duration", title = "Mean Duration for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
 ```{r}
 ggplot(interval50Df, aes(x = distance_interval, y = duration)) +
   geom_boxplot() +
   labs(x = "Distance Interval", y = "Duration", title = "Boxplot of Duration for Each Interval")
 ```
-```{r}
-# Calculate mean for each interval
-mean_by_interval <- aggregate(duration ~ distance_interval, data = interval25Df, FUN = mean)
-
-# Create bar plot using ggplot2
-ggplot(mean_by_interval, aes(x = distance_interval, y = duration)) +
-  geom_point(size = 3, color = "skyblue") +
-  geom_line()+
-  labs(x = "Interval", y = "Mean Duration", title = "Mean Duration for Each Interval") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
 
 ```{r}
 ggplot(interval50Df, aes(x = distance_interval, y = Dry.Mass)) +
   geom_boxplot() +
   labs(x = "Distance Interval", y = "Duration", title = "Boxplot of Duration for Each Interval")
 ```
+
 ```{r}
 # Calculate mean for each interval
 mean_by_interval <- aggregate(Dry.Mass ~ distance_interval, data = interval25Df, FUN = mean)
@@ -433,7 +435,6 @@ ggplot(mean_by_interval, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
   labs(x = "Distance Interval", y = "Dry Mass", title = "Mean Mass for Each Interval") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
-
 
 ```{r}
 interval5Df = addDistanceIntervals(distanceFromCenterDf,5)
@@ -452,6 +453,7 @@ ggplot(filtered_data, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
   labs(x = "Distance Interval", y = "Mean Dry Mass", title = "Mean Dry Mass for Each Interval") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
 ```{r}
 interval1Df = addDistanceIntervals(distanceFromCenterDf,1)
 ```
