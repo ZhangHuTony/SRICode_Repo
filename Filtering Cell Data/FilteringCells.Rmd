@@ -469,3 +469,16 @@ ggplot(filtered_data, aes(x = distance_interval, y = Dry.Mass, group = 1)) +
   labs(x = "Distance Interval", y = "Mean Dry Mass", title = "Mean Dry Mass for Each Interval") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+```{r}
+# Calculate mean for each interval
+mean_by_interval <- aggregate(left ~ distance_interval, data = interval25Df, FUN = mean)
+mean_by_interval$distance_interval <- factor(mean_by_interval$distance_interval, levels = rev(levels(mean_by_interval$distance_interval)))
+
+# Create bar plot using ggplot2
+ggplot(mean_by_interval, aes(x = distance_interval, y = left, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Percentage Stop Being Tracked", title = "Percentage Of Cells that stopped being tracked for Each Interval") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
