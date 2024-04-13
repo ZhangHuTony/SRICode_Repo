@@ -484,3 +484,49 @@ ggplot(mean_by_interval, aes(x = distance_interval, y = left, group = 1)) +
   labs(x = "Distance Interval", y = "Percentage Stop Being Tracked", title = "Percentage Of Cells that stopped being tracked for Each Interval") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
+
+## Heatmaps:
+```{r}
+library(latticeExtra)
+library(lattice)
+ 
+
+# Dummy data
+x <- seq(1,10, length.out=20)
+y <- seq(1,10, length.out=20)
+data <- expand.grid(X=x, Y=y)
+data$Z <- runif(400, 0, 5)
+
+## Try it out
+levelplot(Z ~ X*Y, data=data)
+
+
+# Assuming scaledDf is your original dataframe
+# Columns to be included in the new dataframe
+selected_columns <- c("Centered_Position.X", "Centered_Position.Y", "Dry.Mass")
+
+# Creating a new dataframe by selecting specific columns from scaledDf
+new_df <- distanceFromCenterDf[selected_columns]
+
+data1 = new_df %>% 
+  rename(
+    X = Centered_Position.X,
+    Y = Centered_Position.Y,
+    Z = Dry.Mass
+    )
+
+# Check for missing values
+if (anyNA(data1)) {
+  cat("There are missing values in the dataset.")
+}
+
+# Check data range
+summary(data1$Z)
+
+# Plotting with specified color scale
+ggplot(data1, aes(x = X, y = Y, fill = Z)) +
+  geom_tile() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "Centered_Position.X", y = "Centered_Position.Y", fill = "Dry.Mass")
+```
+
