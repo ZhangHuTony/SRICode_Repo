@@ -1,0 +1,140 @@
+---
+title: "Distance From Edge vs Dry Mass"
+author: "Tony Zhang"
+date: "2024-04-17"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+## Reading in Data
+```{r}
+Barbie_Df = read.csv('Data/barbie6hrs.csv')
+Ken_Df = read.csv('Data/ken6hrs.csv')
+```
+
+## Drop all unused data
+```{r}
+Barbie_Df <- Barbie_Df[, c('Tracking.ID', 'Dry.Mass', 'Position.X', 'Position.Y')]
+Ken_Df <- Ken_Df[, c('Tracking.ID', 'Dry.Mass', 'Position.X', 'Position.Y')]
+```
+
+
+## Find distance from edge
+```{r}
+rescalePosition <- function(Df){
+  Df$Centered_Position.X = Df$Position.X - 500
+  Df$Centered_Position.Y = Df$Position.Y - 500
+  Df$Distance_From_Edge = pmin(500 - abs(Df$Centered_Position.X), 500 - abs(Df$Centered_Position.Y))
+  return(Df)
+}
+```
+
+```{r}
+Barbie_Df = rescalePosition(Barbie_Df)
+Ken_Df = rescalePosition(Ken_Df)
+```
+
+##Find Dry Mass Percent Change 
+```{r}
+calculate_dry_mass_change <- function(df) {
+  current_TrackingID <- -1
+  starting_DryMass <- 0
+  for (i in 1:nrow(df)) {
+    if (df[i, 'Tracking.ID'] != current_TrackingID) {
+      current_TrackingID <- df[i, 'Tracking.ID']
+      starting_DryMass <- df[i, 'Dry.Mass']
+    }
+    df[i, 'Dry.Mass_Percent.Change'] <- ((df[i, 'Dry.Mass'] - starting_DryMass) / starting_DryMass) * 100
+  }
+  return(df)
+}
+```
+
+```{r}
+Barbie_Df = calculate_dry_mass_change(Barbie_Df)
+Ken_Df = calculate_dry_mass_change(Ken_Df)
+```
+
+## Intervalize Distance From Edge
+```{r}
+addDistanceIntervals <- function(Df, interval_width){
+  Df$distance_interval <- cut(Df$Distance_From_Edge, breaks = seq(0, max(Df$Distance_From_Edge) + interval_width, by = interval_width), include.lowest = TRUE, right = FALSE)
+  return (Df)
+}
+```
+
+```{r}
+Barbie_Df_25 = addDistanceIntervals(Barbie_Df,25)
+Ken_Df_25 = addDistanceIntervals(Ken_Df,25)
+```
+
+## Aggregate based on interval
+```{r}
+Barbie_Df_25_Agg <- aggregate(Dry.Mass_Percent.Change ~ distance_interval, data = Barbie_Df_25, FUN = mean)
+Barbie_Df_25_Agg$distance_interval <- factor(Barbie_Df_25_Agg$distance_interval, levels = rev(levels(Barbie_Df_25_Agg$distance_interval)))
+
+Ken_Df_25_Agg <- aggregate(Dry.Mass_Percent.Change ~ distance_interval, data = Ken_Df_25, FUN = mean)
+Ken_Df_25_Agg$distance_interval <- factor(Ken_Df_25_Agg$distance_interval, levels = rev(levels(Ken_Df_25_Agg$distance_interval)))
+```
+
+```{r}
+ggplot(Barbie_Df_25_Agg, aes(x = distance_interval, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "pink") + 
+  geom_point(size = 2, color = "hotpink") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+```{r}
+ggplot(Ken_Df_25_Agg, aes(x = distance_interval, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Distance Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+```{r}
+print("Ken Final Below 50")
+print(sum(Ken_Df_25$Distance_From_Edge < 50))
+print("Barbie Final Below 50")
+print(sum(Barbie_Df_25$Distance_From_Edge < 50))
+```
+
+## Look at final observation
+```{r}
+Barbie_Df_25_Final <- Barbie_Df_25[!duplicated(Barbie_Df_25$Tracking.ID, fromLast = TRUE), ]
+Ken_Df_25_Final <- Ken_Df_25[!duplicated(Ken_Df_25$Tracking.ID, fromLast = TRUE), ]
+
+
+Barbie_Df_25_Final_Agg <- aggregate(Dry.Mass_Percent.Change ~ distance_interval, data = Barbie_Df_25_Final, FUN = mean)
+Barbie_Df_25_Final_Agg$distance_interval <- factor(Barbie_Df_25_Final_Agg$distance_interval, levels = rev(levels(Barbie_Df_25_Final_Agg$distance_interval)))
+
+Ken_Df_25_Final_Agg <- aggregate(Dry.Mass_Percent.Change ~ distance_interval, data = Ken_Df_25_Final, FUN = mean)
+Ken_Df_25_Final_Agg$distance_interval <- factor(Ken_Df_25_Final_Agg$distance_interval, levels = rev(levels(Ken_Df_25_Final_Agg$distance_interval)))
+```
+
+```{r}
+ggplot(Barbie_Df_25_Final_Agg, aes(x = distance_interval, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "pink") + 
+  geom_point(size = 2, color = "hotpink") +
+  labs(x = "Distance Interval", y = "Mean Final Percent Change", title = "Mean Final Percent Change of Barbie Cells Dry Mass at different distance intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+```{r}
+
+ggplot(Ken_Df_25_Final_Agg, aes(x = distance_interval, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Final Percent Change", title = "Mean Final Percent Change of Ken Cells Dry Mass at different distance intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+print("Ken Final Below 50")
+print(sum(Ken_Df_25_Final$Distance_From_Edge < 50))
+print("Barbie Final Below 50")
+print(sum(Barbie_Df_25_Final$Distance_From_Edge < 50))
+```
+

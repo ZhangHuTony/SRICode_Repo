@@ -1,4 +1,4 @@
-
+library(dplyr)
 
 #' Position Normalization
 #'
@@ -13,6 +13,7 @@ rescalePosition <- function(Df){
   Df$Centered_Position.Y = Df$Position.Y - 500
   Df$Distance_From_Edge = pmin(500 - abs(Df$Centered_Position.X), 500 - abs(Df$Centered_Position.Y))
   Df$Distance_From_Center = sqrt(Df$Centered_Position.X^2 + Df$Centered_Position.Y^2)
+  return(Df)
 }
 
 #Method which can be used after the rescale position method

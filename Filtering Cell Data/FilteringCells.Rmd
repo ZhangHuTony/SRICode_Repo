@@ -20,6 +20,7 @@ library(dplyr)
 ```{r}
 Filt6_BarbieMelanoma_Dataframe = read.csv("Data/barbie6hrs.csv")
 Filt6_KenMelanoma_Dataframe = read.csv("Data/ken6hrs.csv")
+melanocyte6_Dataframe = read.csv("Data/melanocyte6hrs.csv")
 ```
 
 # Looking at individual cells
@@ -487,46 +488,41 @@ ggplot(mean_by_interval, aes(x = distance_interval, y = left, group = 1)) +
 
 ## Heatmaps:
 ```{r}
-library(latticeExtra)
-library(lattice)
- 
+library(hexbin)
 
-# Dummy data
-x <- seq(1,10, length.out=20)
-y <- seq(1,10, length.out=20)
-data <- expand.grid(X=x, Y=y)
-data$Z <- runif(400, 0, 5)
-
-## Try it out
-levelplot(Z ~ X*Y, data=data)
-
-
-# Assuming scaledDf is your original dataframe
-# Columns to be included in the new dataframe
-selected_columns <- c("Centered_Position.X", "Centered_Position.Y", "Dry.Mass")
-
-# Creating a new dataframe by selecting specific columns from scaledDf
-new_df <- distanceFromCenterDf[selected_columns]
-
-data1 = new_df %>% 
-  rename(
-    X = Centered_Position.X,
-    Y = Centered_Position.Y,
-    Z = Dry.Mass
-    )
-
-# Check for missing values
-if (anyNA(data1)) {
-  cat("There are missing values in the dataset.")
-}
-
-# Check data range
-summary(data1$Z)
-
-# Plotting with specified color scale
-ggplot(data1, aes(x = X, y = Y, fill = Z)) +
-  geom_tile() +
-  scale_fill_gradient(low = "blue", high = "red") +
-  labs(x = "Centered_Position.X", y = "Centered_Position.Y", fill = "Dry.Mass")
+kenRescaledDf = rescalePosition(Filt6_KenMelanoma_Dataframe)
 ```
+
+```{r}
+melanocyteRescaledDf = rescalePosition(melanocyte6_Dataframe)
+```
+
+
+```{r}
+
+hex <- hexbin(kenRescaledDf$Centered_Position.X, kenRescaledDf$Centered_Position.Y)
+plot(hex,colramp = colorRampPalette(hcl.colors(12)))
+
+melanocyteHex <- hexbin(melanocyteRescaledDf$Centered_Position.X, melanocyteRescaledDf$Centered_Position.Y)
+plot(melanocyteHex,colramp = colorRampPalette(hcl.colors(12)))
+
+```
+
+```{r}
+ggplot(kenRescaledDf, aes(x = Centered_Position.X, y = Centered_Position.Y, fill = Dry.Mass)) +
+  geom_tile(width = 50, height = 50) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  coord_fixed()
+```
+```{r}
+library(latticeExtra)
+
+levelplot(Dry.Mass ~ Centered_Position.X * Centered_Position.Y, kenRescaledDf, 
+          panel = panel.levelplot.points, cex = 1.2
+    ) + 
+    layer_(panel.2dsmoother(..., n = 200))
+```
+
+
+
 
