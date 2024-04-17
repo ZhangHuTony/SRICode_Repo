@@ -1,0 +1,195 @@
+---
+title: "Crowding vs. Dry Mass"
+author: "Tony Zhang"
+date: "2024-04-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+
+```{r}
+Barbie_Df = read.csv('Data/barbie6hrs.csv')
+Ken_Df = read.csv('Data/ken6hrs.csv')
+```
+
+```{r}
+Barbie_Df_Crowd <- Barbie_Df[, c('Frame', 'Tracking.ID', 'Dry.Mass', 'Position.X', 'Position.Y')]
+Ken_Df_Crowd <- Ken_Df[, c('Frame', 'Tracking.ID', 'Dry.Mass', 'Position.X', 'Position.Y')]
+```
+
+## Find Crowding
+
+```{r}
+
+
+# Function to count points within a distance threshold for each subset of rows
+count_within_distance_subset <- function(df, threshold) {
+  # Function to count points within a distance threshold
+  count_within_distance <- function(sub_df, threshold) {
+    # Calculate pairwise distances
+    distances <- as.matrix(dist(sub_df[, c("Position.X", "Position.Y")]))
+
+    # Filter distances within the threshold
+    within_threshold <- distances <= threshold
+    
+    # Count number of points within the threshold for each row
+    counts <- rowSums(within_threshold) - 1  # Exclude self-distance
+    
+    return(counts)
+  }
+  
+  # Split dataframe by unique values of Frame
+  df_list <- split(df, df$Frame)
+  
+  # Apply counting function to each subset and combine results
+  counts <- unlist(lapply(df_list, count_within_distance, threshold = threshold))
+  
+  # Add counts to the dataframe
+  df$crowding <- counts[order(as.numeric(rownames(df)))]
+  
+  return(df)
+}
+
+```
+
+
+
+
+```{r}
+Barbie_Df_Crowd <- count_within_distance_subset(Barbie_Df_Crowd, threshold = 50)
+Ken_Df_Crowd <- count_within_distance_subset(Ken_Df_Crowd, threshold = 50)
+```
+
+
+## Find distance from edge
+
+```{r}
+rescalePosition <- function(Df){
+  Df$Centered_Position.X = Df$Position.X - 500
+  Df$Centered_Position.Y = Df$Position.Y - 500
+  Df$Distance_From_Edge = pmin(500 - abs(Df$Centered_Position.X), 500 - abs(Df$Centered_Position.Y))
+  return(Df)
+}
+```
+
+```{r}
+Barbie_Df_Crowd = rescalePosition(Barbie_Df_Crowd)
+Ken_Df_Crowd = rescalePosition(Ken_Df_Crowd)
+```
+
+## Find Dry Mass Percent Change
+
+```{r}
+calculate_dry_mass_change <- function(df) {
+  current_TrackingID <- -1
+  starting_DryMass <- 0
+  for (i in 1:nrow(df)) {
+    if (df[i, 'Tracking.ID'] != current_TrackingID) {
+      current_TrackingID <- df[i, 'Tracking.ID']
+      starting_DryMass <- df[i, 'Dry.Mass']
+    }
+    df[i, 'Dry.Mass_Percent.Change'] <- ((df[i, 'Dry.Mass'] - starting_DryMass) / starting_DryMass) * 100
+  }
+  return(df)
+}
+```
+
+```{r}
+Barbie_Df_Crowd = calculate_dry_mass_change(Barbie_Df_Crowd)
+Ken_Df_Crowd = calculate_dry_mass_change(Ken_Df_Crowd)
+```
+
+## Make intervals based on Distance From Edge
+
+```{r}
+addDistanceIntervals <- function(Df, interval_width){
+  Df$distance_interval <- cut(Df$Distance_From_Edge, breaks = seq(0, max(Df$Distance_From_Edge) + interval_width, by = interval_width), include.lowest = TRUE, right = FALSE)
+  return (Df)
+}
+```
+
+```{r}
+Barbie_Df_Crowd = addDistanceIntervals(Barbie_Df_Crowd,25)
+Ken_Df_Crowd = addDistanceIntervals(Ken_Df_Crowd,25)
+```
+
+## Aggregate based on interval Dry Mass Percent Change mean
+
+
+```{r}
+Barbie_Df_25_Agg <- aggregate(crowding ~ distance_interval, data = Barbie_Df_Crowd, FUN = mean)
+
+Ken_Df_25_Agg <- aggregate(crowding ~ distance_interval, data = Ken_Df_Crowd, FUN = mean)
+```
+
+```{r}
+Barbie_Df_25_Agg$distance_interval <- factor(Barbie_Df_25_Agg$distance_interval, levels = rev(levels(Barbie_Df_25_Agg$distance_interval)))
+
+
+ggplot(Barbie_Df_25_Agg, aes(x = distance_interval, y = crowding, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Crowding", title = "Mean Crowding at Different Distances") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+ggplot(Ken_Df_25_Agg, aes(x = distance_interval, y = crowding, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+Barbie_Df_25_Agg <- aggregate(Dry.Mass ~ crowding, data = Barbie_Df_Crowd, FUN = mean)
+
+Ken_Df_25_Agg <- aggregate(Dry.Mass ~ crowding, data = Ken_Df_Crowd, FUN = mean)
+```
+
+```{r}
+ggplot(Barbie_Df_25_Agg, aes(x = crowding, y = Dry.Mass, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Crowding", y = "Mean Dry Mass", title = "Crowding vs Mean Dry Mass") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+ggplot(Ken_Df_25_Agg, aes(x = crowding, y = Dry.Mass, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+```{r}
+Barbie_Df_25_Agg <- aggregate(Dry.Mass_Percent.Change ~ crowding, data = Barbie_Df_Crowd, FUN = mean)
+
+Ken_Df_25_Agg <- aggregate(Dry.Mass_Percent.Change ~ crowding, data = Ken_Df_Crowd, FUN = mean)
+```
+
+```{r}
+ggplot(Barbie_Df_25_Agg, aes(x = crowding, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "pink") + 
+  geom_point(size = 2, color = "hotpink") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+```{r}
+ggplot(Ken_Df_25_Agg, aes(x = crowding, y = Dry.Mass_Percent.Change, group = 1)) +
+  geom_line(linewidth = 1, color = "skyblue") + 
+  geom_point(size = 2, color = "blue") +
+  labs(x = "Distance Interval", y = "Mean Percent Change", title = "Mean Percent Change of Ken Cells' Dry Mass at Different Intervals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```

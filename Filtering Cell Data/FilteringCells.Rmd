@@ -241,7 +241,7 @@ for(i in 1:10){
 ## LOGISTICAL REGRESSSION
 
 ```{r}
-distanceFromCenterDf = rescalePosition(Filt6_BarbieMelanoma_Dataframe)
+Barbie_Rescaled_Df = rescalePosition(Filt6_BarbieMelanoma_Dataframe)
 ```
 
 ```{r}
@@ -499,6 +499,8 @@ melanocyteRescaledDf = rescalePosition(melanocyte6_Dataframe)
 
 
 ```{r}
+hex <- hexbin(Barbie_Rescaled_Df$Centered_Position.X, Barbie_Rescaled_Df$Centered_Position.Y)
+plot(hex,colramp = colorRampPalette(hcl.colors(12)))
 
 hex <- hexbin(kenRescaledDf$Centered_Position.X, kenRescaledDf$Centered_Position.Y)
 plot(hex,colramp = colorRampPalette(hcl.colors(12)))
@@ -510,7 +512,7 @@ plot(melanocyteHex,colramp = colorRampPalette(hcl.colors(12)))
 
 ```{r}
 ggplot(kenRescaledDf, aes(x = Centered_Position.X, y = Centered_Position.Y, fill = Dry.Mass)) +
-  geom_tile(width = 50, height = 50) +
+  geom_tile(width = 20, height = 20) +
   scale_fill_gradient(low = "blue", high = "red") +
   coord_fixed()
 ```
