@@ -1,0 +1,88 @@
+```{r}
+raw_df = read.csv('Data/ken6hrs.csv')
+
+```
+
+```{r}
+df = subset(raw_df, select = c(Frame,Tracking.ID,Integrated.Intensity,Dry.Mass,Position.X, Position.Y))
+```
+
+# Crowding Metric
+
+```{r}
+calculate_edge_correction <- function(center, radius, rect) {
+  x <- center[1]
+  y <- center[2]
+  min_x <- rect[1]
+  max_x <- rect[2]
+  min_y <- rect[3]
+  max_y <- rect[4]
+
+  circle_area <- pi * radius^2
+
+  # Check if the circle is fully inside the rectangle
+  if (x - radius >= min_x && x + radius <= max_x &&
+      y - radius >= min_y && y + radius <= max_y) {
+    return(circle_area)
+  }
+
+  # Estimate the overlap area (this is a simplified estimation)
+  overlap_area <- circle_area
+  if (x - radius < min_x) {
+    overlap_area <- overlap_area - pi * (radius - (x - min_x))^2 / 4
+  }
+  if (x + radius > max_x) {
+    overlap_area <- overlap_area - pi * (radius - (max_x - x))^2 / 4
+  }
+  if (y - radius < min_y) {
+    overlap_area <- overlap_area - pi * (radius - (y - min_y))^2 / 4
+  }
+  if (y + radius > max_y) {
+    overlap_area <- overlap_area - pi * (radius - (max_y - y))^2 / 4
+  }
+
+  return(overlap_area)
+}
+```
+
+```{r}
+calculate_correction <- function(x, y, sigma = 1, max_distance = 1000) {
+  max_distance_from_center <- max_distance / 2
+  influence_area_radius <- sigma  # Example: Adjust based on sigma
+  
+  # Calculate distance from center (assuming center at max_distance/2, max_distance/2)
+  distance_from_center <- sqrt((x - max_distance_from_center)^2 + (y - max_distance_from_center)^2)
+  
+  # Calculate overlap correction
+  if (distance_from_center < max_distance_from_center) {
+    overlap_area <- pi * (min(max_distance_from_center, influence_area_radius))^2
+    total_area <- pi * max_distance_from_center^2
+    correction_factor <- overlap_area / total_area
+  } else {
+    correction_factor <- 0
+  }
+  
+  return(correction_factor)
+}
+```
+
+```{r}
+gaussianFunction <- function(distance, sigma){
+  exp(-(distance^2)/(2*(sigma^2)))
+}
+```
+
+```{r}
+calculate_gaussian_sum <- function(df, column_name, sigma = 1, max_distance = 1000, new_column_name = "GaussianSum") {
+  df <- df %>%
+    group_by(Frame) %>%
+    mutate(!!new_column_name := sapply(1:n(), function(i) {
+      correction_factor <- calculate_correction(df[[column_name]][i], df[[column_name]], sigma = sigma, max_distance = max_distance)
+      
+      distances <- sqrt((df[[column_name]] - df[[column_name]][i])^2)
+      sum(gaussian(distances, sigma = sigma)) * correction_factor
+    }))
+  
+  return(df)
+}
+```
