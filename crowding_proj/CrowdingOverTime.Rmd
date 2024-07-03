@@ -1,16 +1,31 @@
 ```{r}
+library(MASS)
+library(ggplot2)
+library(tidyverse)
 raw_df = read.csv('Data/ken6hrs.csv')
-
 ```
 
 ```{r}
 df = subset(raw_df, select = c(Frame,Tracking.ID,Integrated.Intensity,Dry.Mass,Position.X, Position.Y))
 ```
 
+Adding Normalized Integrated.Intensity
+
+```{r}
+df$Normalized_Intensity = df$Integrated.Intensity/df$Dry.Mass
+```
+
+```{r}
+df <- df %>%
+  group_by(Tracking.ID) %>%
+  mutate(Normalized_Intensity_Next_Change = lead(Normalized_Intensity) - Normalized_Intensity,
+         Normalized_Intensity_Prev_Change = Normalized_Intensity - lag(Normalized_Intensity))
+```
+
 # Crowding Metric
 
 ```{r}
-calculate_edge_correction <- function(center, radius, rect) {
+calculate_correction <- function(center, radius, rect) {
   x <- center[1]
   y <- center[2]
   min_x <- rect[1]
@@ -46,43 +61,111 @@ calculate_edge_correction <- function(center, radius, rect) {
 ```
 
 ```{r}
-calculate_correction <- function(x, y, sigma = 1, max_distance = 1000) {
-  max_distance_from_center <- max_distance / 2
-  influence_area_radius <- sigma  # Example: Adjust based on sigma
-  
-  # Calculate distance from center (assuming center at max_distance/2, max_distance/2)
-  distance_from_center <- sqrt((x - max_distance_from_center)^2 + (y - max_distance_from_center)^2)
-  
-  # Calculate overlap correction
-  if (distance_from_center < max_distance_from_center) {
-    overlap_area <- pi * (min(max_distance_from_center, influence_area_radius))^2
-    total_area <- pi * max_distance_from_center^2
-    correction_factor <- overlap_area / total_area
-  } else {
-    correction_factor <- 0
-  }
-  
-  return(correction_factor)
-}
-```
-
-```{r}
-gaussianFunction <- function(distance, sigma){
+gaussian <- function(distance, sigma){
   exp(-(distance^2)/(2*(sigma^2)))
 }
 ```
 
 ```{r}
-calculate_gaussian_sum <- function(df, column_name, sigma = 1, max_distance = 1000, new_column_name = "GaussianSum") {
-  df <- df %>%
-    group_by(Frame) %>%
-    mutate(!!new_column_name := sapply(1:n(), function(i) {
-      correction_factor <- calculate_correction(df[[column_name]][i], df[[column_name]], sigma = sigma, max_distance = max_distance)
+calculate_crowding <- function(df, sigmas, window_width = 1000, new_column_names) {
+  if (length(new_column_names) != length(sigmas)) {
+    stop("Length of 'new_column_names' must match length of 'sigmas'")
+  }
+  
+  for (i in seq_along(sigmas)) {
+    sigma <- sigmas[i]
+    new_column_name <- new_column_names[i]
+    
+    df <- df %>%
+      group_by(Frame) %>%
+      mutate(!!new_column_name := sapply(1:n(), function(i) {
+        center <- c(Position.X[i], Position.Y[i])
+        radius <- sigma  # Example: Adjust based on sigma
+        rect <- c(0, window_width, 0, window_width)  # Assuming rectangular frame
       
-      distances <- sqrt((df[[column_name]] - df[[column_name]][i])^2)
-      sum(gaussian(distances, sigma = sigma)) * correction_factor
+        correction_factor <- (pi*radius^2)/calculate_correction(center, radius, rect)
+      
+        distances <- sqrt((Position.X - Position.X[i])^2 + (Position.Y - Position.Y[i])^2)
+        (sum(gaussian(distances, sigma = sigma))-1) * correction_factor
     }))
+  }
   
   return(df)
+}
+```
+
+```{r}
+sigmas = c(50,100,150,200,250)
+crowding_cols = c("Crowding_50", "Crowding_100", "Crowding_150", "Crowding_200", "Crowding_250")
+df = calculate_crowding(df,sigmas, new_column_names = col_names)
+```
+
+# Data Visualization:
+
+Making dfs that drop the NAs for next and previous intensity changes:
+
+```{r}
+df_next_clean <- df%>%
+  drop_na(Normalized_Intensity_Next_Change)
+
+df_prev_clean <- df %>%
+  drop_na(Normalized_Intensity_Prev_Change)
+```
+
+```{r}
+create_smoothed_plot <- function(x_col_name, y_col_name,df) {
+  # Apply the supsmu function
+  smooth_data <- supsmu(df[[x_col_name]], df[[y_col_name]])
+  
+  # Create the plot
+  plot <- ggplot(df, aes_string(x = x_col_name, y = y_col_name)) +
+    geom_point() +  # Scatter plot
+    geom_line(aes(x = smooth_data$x, y = smooth_data$y), color = "blue") +  # Smoothed line
+    labs(
+      title = paste("Scatter Plot with Smoothed Line using supsmu for", x_col_name),
+      x = paste(x_col_name),
+      y = paste(y_col_name)
+    )
+  
+  # Print the plot
+  print(plot)
+}
+```
+
+## Unweighted Crowding
+
+```{r}
+# Loop through each x column and create the plot
+for (x_col in crowding_cols) {
+  create_smoothed_plot(x_col, "Normalized_Intensity",df)
+}
+
+```
+
+```{r}
+for (x_col in crowding_cols) {
+  create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
+}
+```
+
+## Weighted Crowding
+
+```{r}
+df <- df %>%
+  mutate(across(all_of(x_columns), ~ . * Normalized_Intensity, .names = "{col}_Weighted"))
+```
+
+```{r}
+weighted_crowding_cols <- c("Crowding_50_Weighted", "Crowding_100_Weighted", "Crowding_150_Weighted", "Crowding_200_Weighted", "Crowding_250_Weighted")  # Replace with your actual column names
+
+# Loop through each x column and create the plot
+for (x_col in weighted_crowding_cols) {
+  create_smoothed_plot(x_col, "Normalized_Intensity", df)
+}
+```
+
+```{r}
+for (x_col in weighted_crowding_cols) {
+  create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
 ```
