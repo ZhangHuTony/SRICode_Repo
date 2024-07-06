@@ -150,16 +150,16 @@ ggplot(Ken_Df_25_Agg, aes(x = distance_interval, y = crowding, group = 1)) +
 ```
 
 ```{r}
-Barbie_Df_25_Agg <- aggregate(Dry.Mass ~ crowding, data = Barbie_Df_Crowd, FUN = mean)
+Barbie_Df_25_Agg <- aggregate(Stopped.Tracking ~ crowding, data = Barbie_Df_Crowd, FUN = mean)
 
 Ken_Df_25_Agg <- aggregate(Dry.Mass ~ crowding, data = Ken_Df_Crowd, FUN = mean)
 ```
 
 ```{r}
-ggplot(Barbie_Df_25_Agg, aes(x = crowding, y = Dry.Mass, group = 1)) +
+ggplot(Barbie_Df_25_Agg, aes(x = crowding, y = Stopped.Tracking, group = 1)) +
   geom_line(linewidth = 1, color = "skyblue") + 
   geom_point(size = 2, color = "blue") +
-  labs(x = "Crowding", y = "Mean Dry Mass", title = "Crowding vs Mean Dry Mass") +
+  labs(x = "Crowding", y = "Probability Of Stopped Being Tracked", title = "Crowding vs Stopped Tracking") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
 

@@ -499,7 +499,7 @@ melanocyteRescaledDf = rescalePosition(melanocyte6_Dataframe)
 
 
 ```{r}
-hex <- hexbin(Barbie_Rescaled_Df$Centered_Position.X, Barbie_Rescaled_Df$Centered_Position.Y)
+hex <- hexbin(Barbie_Rescaled_Df$Centered_Position.X, Barbie_Rescaled_Df$Centered_Position.Y, xbins = 10)
 plot(hex,colramp = colorRampPalette(hcl.colors(12)))
 
 hex <- hexbin(kenRescaledDf$Centered_Position.X, kenRescaledDf$Centered_Position.Y)
@@ -511,10 +511,12 @@ plot(melanocyteHex,colramp = colorRampPalette(hcl.colors(12)))
 ```
 
 ```{r}
-ggplot(kenRescaledDf, aes(x = Centered_Position.X, y = Centered_Position.Y, fill = Dry.Mass)) +
+ggplot(Barbie_Df_25, aes(x = Position.X, y = Position.Y, fill = Stopped.Tracking)) +
   geom_tile(width = 20, height = 20) +
   scale_fill_gradient(low = "blue", high = "red") +
-  coord_fixed()
+  coord_fixed()+
+    labs(x = "X Position", y = "Y Position", title = "Stopped Tracking Heat Map") 
+
 ```
 ```{r}
 library(latticeExtra)

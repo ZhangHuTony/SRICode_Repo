@@ -143,7 +143,7 @@ Ken_Df = count_within_distance_subset(Ken_Df,50)
 
 
 ```{r}
-model_Barbie <- glm(Stopped.Tracking ~ duration+Dry.Mass+ Dry.Mass_Percent.Change+Distance_From_Edge+Mean.Intensity+Integrated.Intensity, data = Barbie_Df, family = binomial )
+model_Barbie <- glm(Stopped.Tracking ~ Dry.Mass+ Dry.Mass_Percent.Change+Distance_From_Edge+Mean.Intensity+Integrated.Intensity, data = Barbie_Df, family = binomial )
 summary(model_Barbie)
 ```
 ```{r}
