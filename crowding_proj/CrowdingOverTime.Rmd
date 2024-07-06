@@ -97,7 +97,7 @@ calculate_crowding <- function(df, sigmas, window_width = 1000, new_column_names
 ```{r}
 sigmas = c(50,100,150,200,250)
 crowding_cols = c("Crowding_50", "Crowding_100", "Crowding_150", "Crowding_200", "Crowding_250")
-df = calculate_crowding(df,sigmas, new_column_names = col_names)
+df = calculate_crowding(df,sigmas, new_column_names = crowding_cols)
 ```
 
 # Data Visualization:
@@ -107,9 +107,6 @@ Making dfs that drop the NAs for next and previous intensity changes:
 ```{r}
 df_next_clean <- df%>%
   drop_na(Normalized_Intensity_Next_Change)
-
-df_prev_clean <- df %>%
-  drop_na(Normalized_Intensity_Prev_Change)
 ```
 
 ```{r}
@@ -148,15 +145,18 @@ for (x_col in crowding_cols) {
 }
 ```
 
-## Weighted Crowding
+## Intensity Weighted Crowding
 
 ```{r}
 df <- df %>%
-  mutate(across(all_of(x_columns), ~ . * Normalized_Intensity, .names = "{col}_Weighted"))
+  mutate(across(all_of(crowding_cols), ~ . * Normalized_Intensity, .names = "{col}_Weighted"))
+
+df_next_clean <- df%>%
+  drop_na(Normalized_Intensity_Next_Change)
 ```
 
 ```{r}
-weighted_crowding_cols <- c("Crowding_50_Weighted", "Crowding_100_Weighted", "Crowding_150_Weighted", "Crowding_200_Weighted", "Crowding_250_Weighted")  # Replace with your actual column names
+weighted_crowding_cols <- c("Crowding_50_Weighted", "Crowding_100_Weighted", "Crowding_150_Weighted", "Crowding_200_Weighted", "Crowding_250_Weighted")
 
 # Loop through each x column and create the plot
 for (x_col in weighted_crowding_cols) {
@@ -169,3 +169,21 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
 ```
+
+## Intensity Change Weighted Crowding
+```{r}
+df_clean = na.omit(df)
+
+df_clean <- df_clean %>%
+  mutate(across(all_of(crowding_cols), ~ . * Normalized_Intensity_Prev_Change, .names = "{col}_Change_Weighted"))
+
+```
+
+```{r}
+change_weighted_crowding_cols <- c("Crowding_50_Change_Weighted", "Crowding_100_Change_Weighted", "Crowding_150_Change_Weighted", "Crowding_200_Change_Weighted", "Crowding_250_Change_Weighted")
+
+for (x_col in change_weighted_crowding_cols) {
+  create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_clean)
+}
+```
+
