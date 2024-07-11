@@ -18,12 +18,21 @@ raw_df = read.csv('Data/ken6hrs.csv')
 
 
 # Setting up starting conditions of the simulation
-raw_df$Intensity = raw_df$Integrated.Intensity / raw_df$Dry.Mass
+raw_df$Normalized_Intensity = raw_df$Integrated.Intensity / raw_df$Dry.Mass
 
-sim_df = subset(raw_df, select = c(Frame, Intensity, Position.X, Position.Y), subset = Frame == 1)
+raw_df <- raw_df %>%
+  group_by(Tracking.ID) %>%
+  mutate(Normalized_Intensity_Change = lead(Normalized_Intensity) / Normalized_Intensity)
+
+sim_df = subset(raw_df, select = c(Frame, Normalized_Intensity, Position.X, Position.Y), subset = Frame == 1)
 
 row.names(sim_df) <- NULL
+
 ```
+
+# Simulation
+
+## Cell Count
 
 -   This simulation will attempt to stay consistent with the number of cells in the actual experiment.
     -   However, the number of cells which undergo immigration, emigration, death and division each Frame is unknown.
@@ -63,8 +72,6 @@ ggplot(cell_counts_df, aes(x = Frame, y = Cell_Count)) +
   labs(title = "Exponential Fit to Cell Counts")
 ```
 
-# Simulation
-
 ```{r}
 #minimum amount of time required to divide
 maturation_time = 6.0
@@ -75,6 +82,23 @@ sim_df$duration_hr = maturation_time
 cell_counts_df <- cell_counts_df %>%
   mutate(count_increase = lead(predicted) - predicted)
 ```
+
+## Intensity:
+
+```{r}
+clean_df = na.omit(raw_df)
+
+mean_change = mean(clean_df$Normalized_Intensity_Change)
+sd_change = sd(clean_df$Normalized_Intensity_Change)
+
+ggplot(clean_df, aes(x = log(Normalized_Intensity_Change)))+
+  geom_density() +
+  stat_function(fun=dnorm, args=list(mean=mean_change, sd=sd_change), color="red", size=1) +
+
+  labs(title = "Log Distribution of Change in Intensities")
+```
+
+## Results
 
 ```{r}
 for(i in 1:260){
@@ -96,14 +120,14 @@ for(i in 1:260){
     for(i in 1:nrow(chosen_cells)){
       left_child = data.frame(
                             Frame = chosen_cells[i, "Frame"], 
-                            Intensity = chosen_cells[i, "Intensity"],
+                            Normalized_Intensity = chosen_cells[i, "Normalized_Intensity"],
                             Position.X = chosen_cells[i, "Position.X"] - 20,
                             Position.Y = chosen_cells[i, "Position.Y"],
                             duration_hr = 0
                             )
       right_child = data.frame(
                             Frame = chosen_cells[i, "Frame"], 
-                            Intensity = chosen_cells[i, "Intensity"],
+                            Normalized_Intensity = chosen_cells[i, "Normalized_Intensity"],
                             Position.X = chosen_cells[i, "Position.X"] + 20,
                             Position.Y = chosen_cells[i, "Position.Y"],
                             duration_hr = 0
@@ -117,6 +141,7 @@ for(i in 1:260){
     }
   
   
+  curr_df$Normalized_Intensity = curr_df$Normalized_Intensity * exp(rnorm(n = nrow(curr_df), mean_change, sd_change))
   curr_df$duration_hr = curr_df$duration_hr + 0.25
   
   
@@ -126,4 +151,10 @@ for(i in 1:260){
   sim_df = rbind(sim_df, curr_df)#add the new frame to the simulated data
   
 }
+
+row.names(sim_df) <- NULL
+```
+
+```{r}
+write.csv(sim_df, file = "simulation01.csv", row.names = FALSE)
 ```
