@@ -109,6 +109,10 @@ df_next_clean <- df%>%
   drop_na(Normalized_Intensity_Next_Change)
 ```
 
+## Methods
+
+Create simple scatterplots with supsmu line of best fit through
+
 ```{r}
 create_smoothed_plot <- function(x_col_name, y_col_name,df) {
   # Apply the supsmu function
@@ -129,20 +133,139 @@ create_smoothed_plot <- function(x_col_name, y_col_name,df) {
 }
 ```
 
+Create a new dataframe which holds the p-values and coefficients of linear models for many x columns over different Frame intervals.
+
+```{r}
+lm_analyze_intervals <- function(df, x_cols, y_col, interval_size = 30) {
+  # Determine the range of the Frame column
+  frame_min <- min(df$Frame)
+  frame_max <- max(df$Frame)
+  
+  # Define the intervals
+  intervals <- seq(frame_min, frame_max + interval_size, by = interval_size)
+  
+  p_values <- c()
+  x_coefficients <- c()
+  interval_labels <- c()
+  crowding_cols <- c()
+  
+  for (i in 1:(length(intervals) - 1)) {
+    interval_start <- intervals[i]
+    interval_end <- intervals[i + 1]
+    
+    # Subset the data for the current interval
+    df_subset <- df[df$Frame >= interval_start & df$Frame < interval_end, ]
+    
+    for (x_col in x_cols) {
+      fit <- lm(df_subset[[y_col]] ~ df_subset[[x_col]])
+      fit_info <- summary(fit)$coefficients
+      x_coefficients <- append(x_coefficients, fit_info[2, 1])  # Coefficient
+      p_values <- append(p_values, fit_info[2, 4])  # p-value
+      interval_labels <- append(interval_labels, paste(interval_start, interval_end, sep = "-"))
+      crowding_cols <- append(crowding_cols, x_col)
+    }
+  }
+  
+  # Create the results data frame
+  linear_model_df <- data.frame(interval_labels, crowding_cols, x_coefficients, p_values)
+  
+  return(linear_model_df)
+}
+```
+
+Plot the linear model results for each frame interval. Where x is the frame interval, y is the coefficient and the shape is dependent on the p-value
+
+```{r}
+plot_lm_interval_results <- function(linear_model_df) {
+  # Convert interval_labels to a factor with the specified order
+  interval_order <- unique(linear_model_df$interval_labels) 
+  linear_model_df$interval_labels <- factor(linear_model_df$interval_labels, levels = interval_order)
+  
+  # Create a new column for shape categories
+  linear_model_df$shape_category <- cut(linear_model_df$p_values,
+                                        breaks = c(-Inf, 0.001, 0.05, Inf),
+                                        labels = c("p<0.001", "0.001<p<0.05", "p>0.05"))
+  
+  # Create the scatter plot with shape mapped to the shape categories
+  scatter_plot <- ggplot(linear_model_df, aes(x = interval_labels, y = x_coefficients, color = crowding_cols, shape = shape_category)) +
+    geom_point(size = 3) +  # You can adjust the size of the points if needed
+    labs(x = "Frame Intervals", y = "Coefficients", color = "Crowding Columns", shape = "P-Value Category") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +  # Rotate x-axis labels if needed
+    theme_minimal() +
+    scale_shape_manual(values = c("p<0.001" = 16, "0.001<p<0.05" = 8, "p>0.05" = 4))  # Adjust the shapes as needed
+  
+  # Print the scatter plot
+  print(scatter_plot)
+}
+```
+
 ## Unweighted Crowding
+
+### Normalized Intensity
+
+See impact of "crowding" on intensity of cells.
 
 ```{r}
 # Loop through each x column and create the plot
 for (x_col in crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity",df)
 }
-
 ```
+
+```{r}
+p_values = c()
+x_coefficients = c()
+r_squares = c()
+
+for(x_col in crowding_cols){
+  fit = lm(df$Normalized_Intensity ~ df[[x_col]])
+  fit_info = (summary(fit)$coefficients)
+  x_coefficients <- append(x_coefficients, fit_info[2])
+  p_values <- append(p_values, fit_info[8])
+  r_squares <- append(r_squares, summary(fit)$r.squared)
+}
+
+int_change_lm_df = data.frame(crowding_cols, x_coefficients, p_values, r_squares)
+print(int_change_lm_df)
+```
+
+```{r}
+linear_model_df = lm_analyze_intervals(df, crowding_cols, "Normalized_Intensity")
+
+plot_lm_interval_results(linear_model_df)
+```
+
+### Change in Normalized Intensity 
+
+Are cells next change in intensity influenced by how "crowded" the cell is?
 
 ```{r}
 for (x_col in crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
+```
+
+```{r}
+p_values = c()
+x_coefficients = c()
+r_squares = c()
+
+for(x_col in crowding_cols){
+  fit = lm(df$Normalized_Intensity_Next_Change ~ df[[x_col]])
+  fit_info = (summary(fit)$coefficients)
+  x_coefficients <- append(x_coefficients, fit_info[2])
+  p_values <- append(p_values, fit_info[8])
+  r_squares <- append(r_squares, summary(fit)$r.squared)
+}
+
+int_change_lm_df = data.frame(crowding_cols, x_coefficients, p_values, r_squares)
+print(int_change_lm_df)
+```
+
+```{r}
+Int_Change_lmi_df = lm_analyze_intervals(df_next_clean, crowding_cols, "Normalized_Intensity_Next_Change")
+
+plot_lm_interval_results(Int_Change_lmi_df)
 ```
 
 ## Intensity Weighted Crowding
@@ -155,6 +278,7 @@ df_next_clean <- df%>%
   drop_na(Normalized_Intensity_Next_Change)
 ```
 
+### Normalized Intensity
 ```{r}
 weighted_crowding_cols <- c("Crowding_50_Weighted", "Crowding_100_Weighted", "Crowding_150_Weighted", "Crowding_200_Weighted", "Crowding_250_Weighted")
 
@@ -163,14 +287,61 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity", df)
 }
 ```
+```{r}
+p_values = c()
+x_coefficients = c()
+r_squares = c()
+
+for(x_col in weighted_crowding_cols){
+  fit = lm(df$Normalized_Intensity ~ df[[x_col]])
+  fit_info = (summary(fit)$coefficients)
+  x_coefficients <- append(x_coefficients, fit_info[2])
+  p_values <- append(p_values, fit_info[8])
+  r_squares <- append(r_squares, summary(fit)$r.squared)
+}
+
+int_change_lm_df = data.frame(crowding_cols, x_coefficients, p_values, r_squares)
+print(int_change_lm_df)
+```
+
+```{r}
+weighted_lm_df = lm_analyze_intervals(df, weighted_crowding_cols, "Normalized_Intensity")
+
+plot_lm_interval_results(weighted_lm_df)
+```
+
+### Change in Normalized Intensity
 
 ```{r}
 for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
 ```
+```{r}
+p_values = c()
+x_coefficients = c()
+r_squares = c()
+
+for(x_col in weighted_crowding_cols){
+  fit = lm(df_next_clean$Normalized_Intensity_Next_Change ~ df_next_clean[[x_col]])
+  fit_info = (summary(fit)$coefficients)
+  x_coefficients <- append(x_coefficients, fit_info[2])
+  p_values <- append(p_values, fit_info[8])
+  r_squares <- append(r_squares, summary(fit)$r.squared)
+}
+
+int_change_lm_df = data.frame(crowding_cols, x_coefficients, p_values, r_squares)
+print(int_change_lm_df)
+```
+
+```{r}
+weighted_change_lm_df = lm_analyze_intervals(df_next_clean, weighted_crowding_cols, "Normalized_Intensity_Next_Change")
+
+plot_lm_interval_results(weighted_change_lm_df)
+```
 
 ## Intensity Change Weighted Crowding
+
 ```{r}
 df_clean = na.omit(df)
 
@@ -186,4 +357,25 @@ for (x_col in change_weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_clean)
 }
 ```
+```{r}
+p_values = c()
+x_coefficients = c()
+r_squares = c()
 
+for(x_col in change_weighted_crowding_cols){
+  fit = lm(df_clean$Normalized_Intensity_Next_Change ~ df_clean[[x_col]])
+  fit_info = (summary(fit)$coefficients)
+  x_coefficients <- append(x_coefficients, fit_info[2])
+  p_values <- append(p_values, fit_info[8])
+  r_squares <- append(r_squares, summary(fit)$r.squared)
+}
+
+int_change_lm_df = data.frame(crowding_cols, x_coefficients, p_values, r_squares)
+print(int_change_lm_df)
+```
+
+```{r}
+weighted_lm_df = lm_analyze_intervals(df_clean, change_weighted_crowding_cols, "Normalized_Intensity_Next_Change")
+
+plot_lm_interval_results(weighted_lm_df)
+```

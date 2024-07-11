@@ -1,0 +1,129 @@
+---
+title: "Crowding_Intensity_Simulation"
+author: "Tony"
+date: "2024-07-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(MASS)
+library(ggplot2)
+library(tidyverse)
+```
+
+# Reading in Data
+
+```{r}
+raw_df = read.csv('Data/ken6hrs.csv')
+
+
+# Setting up starting conditions of the simulation
+raw_df$Intensity = raw_df$Integrated.Intensity / raw_df$Dry.Mass
+
+sim_df = subset(raw_df, select = c(Frame, Intensity, Position.X, Position.Y), subset = Frame == 1)
+
+row.names(sim_df) <- NULL
+```
+
+-   This simulation will attempt to stay consistent with the number of cells in the actual experiment.
+    -   However, the number of cells which undergo immigration, emigration, death and division each Frame is unknown.
+    -   This experiment will ignore all but division so will fit an exponential curve to cell counts to ensure cell count never decreases.
+
+```{r}
+cell_counts_df = as.data.frame(table(raw_df$Frame))
+
+names(cell_counts_df) = c("Frame", "Cell_Count")
+
+cell_counts_df$Frame <- as.numeric(as.character(cell_counts_df$Frame))
+
+ggplot(cell_counts_df, aes(x = Frame, y = Cell_Count)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(min(cell_counts_df$Frame), max(cell_counts_df$Frame), by = 10)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Appears to be a steep drop off in cells at Frame 261, so will only simulate to Frame 261.
+
+```{r}
+cell_counts_df = cell_counts_df[cell_counts_df$Frame <= 261, ]
+
+# Fitting an exponential model to the count
+model <- lm(log(Cell_Count) ~ Frame, data = cell_counts_df)
+
+#ceiling rounds up, as cannot have 0.24 of a cell
+cell_counts_df$predicted = ceiling(exp(predict(model, cell_counts_df)))
+
+
+
+ggplot(cell_counts_df, aes(x = Frame, y = Cell_Count)) + 
+  geom_point() +
+  scale_x_continuous(breaks = seq(min(cell_counts_df$Frame), max(cell_counts_df$Frame), by = 10)) +
+  geom_line(data = cell_counts_df, aes(x = Frame, y = predicted, ), color = 'blue', size = 1) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(title = "Exponential Fit to Cell Counts")
+```
+
+# Simulation
+
+```{r}
+#minimum amount of time required to divide
+maturation_time = 6.0
+
+#will assume all starting cells are capable of division
+sim_df$duration_hr = maturation_time
+
+cell_counts_df <- cell_counts_df %>%
+  mutate(count_increase = lead(predicted) - predicted)
+```
+
+```{r}
+for(i in 1:260){
+  curr_df = sim_df[sim_df$Frame == i, ]
+  curr_df$Frame = i+1
+  
+  cell_increase = cell_counts_df$count_increase[i]
+  
+  if(cell_increase > 0){
+    #Randomly choose cells to divide
+    filtered_df = curr_df[curr_df$duration_hr >= maturation_time, ] #cells must be mature enough
+  
+    chosen_indices = sample(nrow(filtered_df), cell_increase) #randomly choose indices of cells to divide
+    chosen_cells = filtered_df[chosen_indices, ]
+    
+    original_sampled_indices = which(curr_df$duration_hr >= maturation_time)[chosen_indices] #find the indices of the chosen cells to divide
+    curr_df = curr_df[-original_sampled_indices, ] #remove these cells from the df
+  
+    for(i in 1:nrow(chosen_cells)){
+      left_child = data.frame(
+                            Frame = chosen_cells[i, "Frame"], 
+                            Intensity = chosen_cells[i, "Intensity"],
+                            Position.X = chosen_cells[i, "Position.X"] - 20,
+                            Position.Y = chosen_cells[i, "Position.Y"],
+                            duration_hr = 0
+                            )
+      right_child = data.frame(
+                            Frame = chosen_cells[i, "Frame"], 
+                            Intensity = chosen_cells[i, "Intensity"],
+                            Position.X = chosen_cells[i, "Position.X"] + 20,
+                            Position.Y = chosen_cells[i, "Position.Y"],
+                            duration_hr = 0
+                            )
+    
+      children = rbind(left_child, right_child)
+    
+      curr_df = rbind(curr_df, children) #add children to current frame
+      }
+    
+    }
+  
+  
+  curr_df$duration_hr = curr_df$duration_hr + 0.15
+  
+  
+  
+  
+  
+  sim_df = rbind(sim_df, curr_df)#add the new frame to the simulated data
+  
+}
+```
