@@ -117,7 +117,7 @@ for(i in 1:260){
     }
   
   
-  curr_df$duration_hr = curr_df$duration_hr + 0.15
+  curr_df$duration_hr = curr_df$duration_hr + 0.25
   
   
   
