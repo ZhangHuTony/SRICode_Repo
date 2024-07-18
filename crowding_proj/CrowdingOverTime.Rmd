@@ -235,7 +235,7 @@ linear_model_df = lm_analyze_intervals(df, crowding_cols, "Normalized_Intensity"
 plot_lm_interval_results(linear_model_df)
 ```
 
-### Change in Normalized Intensity 
+### Change in Normalized Intensity
 
 Are cells next change in intensity influenced by how "crowded" the cell is?
 
@@ -279,6 +279,7 @@ df_next_clean <- df%>%
 ```
 
 ### Normalized Intensity
+
 ```{r}
 weighted_crowding_cols <- c("Crowding_50_Weighted", "Crowding_100_Weighted", "Crowding_150_Weighted", "Crowding_200_Weighted", "Crowding_250_Weighted")
 
@@ -287,6 +288,7 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity", df)
 }
 ```
+
 ```{r}
 p_values = c()
 x_coefficients = c()
@@ -317,6 +319,7 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
 ```
+
 ```{r}
 p_values = c()
 x_coefficients = c()
@@ -357,6 +360,7 @@ for (x_col in change_weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_clean)
 }
 ```
+
 ```{r}
 p_values = c()
 x_coefficients = c()

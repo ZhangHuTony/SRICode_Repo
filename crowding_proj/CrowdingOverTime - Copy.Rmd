@@ -2,18 +2,15 @@
 library(MASS)
 library(ggplot2)
 library(tidyverse)
-raw_df = read.csv('Data/ken6hrs.csv')
+
 ```
 
 ```{r}
-df = subset(raw_df, select = c(Frame,Tracking.ID,Integrated.Intensity,Dry.Mass,Position.X, Position.Y))
+df = read.csv('simulation02.csv')
 ```
 
 Adding Normalized Integrated.Intensity
 
-```{r}
-df$Normalized_Intensity = df$Integrated.Intensity/df$Dry.Mass
-```
 
 ```{r}
 df <- df %>%
@@ -287,6 +284,8 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity", df)
 }
 ```
+
+
 ```{r}
 p_values = c()
 x_coefficients = c()
@@ -317,6 +316,8 @@ for (x_col in weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_next_clean)
 }
 ```
+
+
 ```{r}
 p_values = c()
 x_coefficients = c()
@@ -357,6 +358,8 @@ for (x_col in change_weighted_crowding_cols) {
   create_smoothed_plot(x_col, "Normalized_Intensity_Next_Change", df_clean)
 }
 ```
+
+
 ```{r}
 p_values = c()
 x_coefficients = c()
