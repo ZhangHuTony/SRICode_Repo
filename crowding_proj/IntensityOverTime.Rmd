@@ -1,0 +1,76 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+ken_df = read.csv('Data/ken6hrs.csv')
+ken_df = subset(ken_df, select = c(Frame,Tracking.ID,Integrated.Intensity,Dry.Mass,Position.X, Position.Y))
+```
+
+```{r}
+ken_df$Normalized_Intensity = ken_df$Integrated.Intensity / ken_df$Dry.Mass
+ken_df <- ken_df %>%
+  group_by(Tracking.ID) %>%
+  mutate(
+    Normalized_Intensity_Next_Change = lead(Normalized_Intensity) - Normalized_Intensity,
+    Duration = (Frame - min(Frame)) * 0.25)
+  
+```
+
+```{r}
+qqnorm(ken_df$Normalized_Intensity)
+qqline(ken_df$Normalized_Intensity)
+
+qqnorm(ken_df$Normalized_Intensity_Next_Change)
+qqline(ken_df$Normalized_Intensity_Next_Change)
+```
+
+```{r}
+tracking_ids = unique(ken_df$Tracking.ID)
+```
+
+```{r}
+rand_cell_ids = sample(tracking_ids, 25)
+
+for(i in 1:length(rand_cell_ids)){
+  curr_id = rand_cell_ids[i]
+  curr_df = ken_df[ken_df$Tracking.ID == curr_id, ]
+
+  int_plot = ggplot(curr_df, aes(x = Duration, y = Normalized_Intensity)) +
+    geom_point() + 
+    geom_line() + 
+    labs(title = paste("Intensity Over Time for Cell", rand_cell_ids[i]))
+  
+  #print(int_plot)
+  
+  
+  int_change_plot = ggplot(na.omit(curr_df), aes(x = Duration, y = Normalized_Intensity_Next_Change)) +
+    geom_point() + 
+    geom_line() + 
+    labs(title = paste("Change in Intensity Over Time for Cell", rand_cell_ids[i]))
+  
+  #print(int_change_plot)
+  
+  
+}
+```
+
+```{r}
+# Ensure the data is ordered by Frame within each Tracking.ID
+ken_df <- ken_df %>%
+  arrange(Tracking.ID, Frame)
+
+# Calculate autocorrelation for each Tracking.ID
+autocor_results <- ken_df %>%
+  group_by(Tracking.ID) %>%
+  summarize(acf_values = list(acf(Normalized_Intensity, plot = FALSE)$acf))
+
+all_acf_values <- do.call(cbind, autocor_results$acf_values)
+
+mean_acf <- rowMeans(all_acf_values)
+
+print(mean_acf)
+
+# Optional: Plot the mean autocorrelation values
+lags <- 0:(length(mean_acf) - 1)
+plot(lags, mean_acf, type = "b", main = "Mean Autocorrelation by Lag", xlab = "Lag", ylab = "Mean Autocorrelation")
+```
+
