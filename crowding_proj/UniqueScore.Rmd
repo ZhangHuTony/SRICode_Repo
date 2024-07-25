@@ -1,0 +1,118 @@
+```{r}
+library(dplyr)
+
+# Function to calculate correction factor based on the area of the circle overlapping with the rectangle
+calculate_correction <- function(center, radius, rect) {
+  x <- center[1]
+  y <- center[2]
+  min_x <- rect[1]
+  max_x <- rect[2]
+  min_y <- rect[3]
+  max_y <- rect[4]
+
+  circle_area <- pi * radius^2
+
+  # Check if the circle is fully inside the rectangle
+  if (x - radius >= min_x && x + radius <= max_x &&
+      y - radius >= min_y && y + radius <= max_y) {
+    return(circle_area)
+  }
+
+  # Estimate the overlap area (this is a simplified estimation)
+  overlap_area <- circle_area
+  if (x - radius < min_x) {
+    overlap_area <- overlap_area - pi * (radius - (x - min_x))^2 / 4
+  }
+  if (x + radius > max_x) {
+    overlap_area <- overlap_area - pi * (radius - (max_x - x))^2 / 4
+  }
+  if (y - radius < min_y) {
+    overlap_area <- overlap_area - pi * (radius - (y - min_y))^2 / 4
+  }
+  if (y + radius > max_y) {
+    overlap_area <- overlap_area - pi * (radius - (max_y - y))^2 / 4
+  }
+
+  return(overlap_area)
+}
+
+# Gaussian function
+gaussian <- function(distance, sigma) {
+  exp(-(distance^2) / (2 * (sigma^2)))
+}
+
+calculate_unique <- function(df, sigmas, window_width = 1000, new_column_names) {
+  if (length(new_column_names) != length(sigmas)) {
+    stop("Length of 'new_column_names' must match length of 'sigmas'")
+  }
+  
+  for (i in seq_along(sigmas)) {
+    sigma <- sigmas[i]
+    new_column_name <- new_column_names[i]
+    
+    df <- df %>%
+      group_by(Frame) %>%
+      mutate(!!new_column_name := sapply(1:n(), function(i) {
+        center <- c(Position.X[i], Position.Y[i])
+        radius <- sigma  # Example: Adjust based on sigma
+        rect <- c(0, window_width, 0, window_width)  # Assuming rectangular frame
+        
+        correction_factor <- (pi * radius^2) / calculate_correction(center, radius, rect)
+        
+        distances <- sqrt((Position.X - Position.X[i])^2 + (Position.Y - Position.Y[i])^2)
+        intensity_diff <- abs(Normalized_Intensity - Normalized_Intensity[i])
+        
+        weighted_sum <- sum(gaussian(distances, sigma = sigma) * intensity_diff)
+        weighted_crowding <- weighted_sum * correction_factor
+        
+        return(weighted_crowding / n())
+      }))
+  }
+  
+  return(df)
+}
+```
+```{r}
+library(MASS)
+library(ggplot2)
+library(tidyverse)
+raw_df = read.csv('Data/ken6hrs.csv')
+```
+
+```{r}
+df = subset(raw_df, select = c(Frame,Tracking.ID,Integrated.Intensity,Dry.Mass,Position.X, Position.Y))
+```
+
+Adding Normalized Integrated.Intensity
+
+```{r}
+df$Normalized_Intensity = df$Integrated.Intensity/df$Dry.Mass
+```
+
+
+```{r}
+sigmas = c(50,100,150,200,250)
+unique_cols = c("unique_50", "unique_100", "unique_150", "unique_200", "unique_250")
+df = calculate_unique(df,sigmas, new_column_names = unique_cols)
+```
+
+```{r}
+# Calculate mean crowding for each frame
+mean_unique <- df %>%
+  group_by(Frame) %>%
+  summarise(across(all_of(unique_cols), mean, na.rm = TRUE))
+
+# Convert to long format for plotting
+mean_unique <- mean_unique %>%
+  pivot_longer(cols = all_of(unique_cols), names_to = "Sigma", values_to = "Mean_Unique")
+
+# Plot the mean crowding scores over time
+ggplot(mean_unique, aes(x = Frame, y = Mean_Unique, color = Sigma)) +
+  geom_line() +
+  labs(title = "Mean Uniqueness Score Over Time",
+       x = "Frame",
+       y = "Mean Uniqueness Score") +
+  theme_minimal()
+```
+
+

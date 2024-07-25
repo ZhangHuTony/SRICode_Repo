@@ -67,7 +67,6 @@ all_acf_values <- do.call(cbind, autocor_results$acf_values)
 
 mean_acf <- rowMeans(all_acf_values)
 
-print(mean_acf)
 
 # Optional: Plot the mean autocorrelation values
 lags <- 0:(length(mean_acf) - 1)
