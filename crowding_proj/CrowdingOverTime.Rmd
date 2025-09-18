@@ -83,15 +83,33 @@ calculate_crowding <- function(df, sigmas, window_width = 1000, new_column_names
         radius <- sigma  # Example: Adjust based on sigma
         rect <- c(0, window_width, 0, window_width)  # Assuming rectangular frame
       
-        correction_factor <- (pi*radius^2)/calculate_correction(center, radius, rect)
-      
+        correction_factor <- (pi * radius^2) / calculate_correction(center, radius, rect)
+        
+        # Calculate distances from the current center
         distances <- sqrt((Position.X - Position.X[i])^2 + (Position.Y - Position.Y[i])^2)
-        (sum(gaussian(distances, sigma = sigma))-1) * correction_factor
-    }))
+        
+        # Filter out the center row (i-th row) and apply the Gaussian to the other rows
+        gaussian_values <- gaussian(distances, sigma = sigma)
+        
+        # Multiply Gaussian values by the 'Normalized_Intensity', excluding the center
+        non_center_indices <- setdiff(1:n(), i)
+        
+        crowding_effect <- sum(gaussian_values[non_center_indices]* Normalized_Intensity_Prev_Change[non_center_indices]) * correction_factor
+        
+        return(crowding_effect)
+      }))
   }
   
   return(df)
 }
+
+```
+
+
+
+```{r}
+df <- df%>%
+  drop_na(Normalized_Intensity_Prev_Change)
 ```
 
 ```{r}
